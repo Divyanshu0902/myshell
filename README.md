@@ -41,7 +41,7 @@ This project is meant as a small learning-oriented shell implementation. It prov
 
 ## Project Files
 
-- `shell.c` - main source code for the shell
+- `myshell.c` - main source code for the shell
 - `FEATURES.md` - quick feature status document
 
 ## Requirements
@@ -54,7 +54,7 @@ This project is meant as a small learning-oriented shell implementation. It prov
 If you have `gcc` installed:
 
 ```powershell
-gcc -Wall -Wextra -std=c11 shell.c -o myshell.exe
+gcc -Wall -Wextra -std=c11 myshell.c -o myshell.exe
 ```
 
 ## Run
@@ -70,7 +70,7 @@ myshell:D:\Projects\myShell$ pwd
 D:\Projects\myShell
 
 myshell:D:\Projects\myShell$ ls
-shell.c
+myshell.c
 README.md
 FEATURES.md
 
