@@ -24,15 +24,16 @@
 - Better quoted argument parsing for built-in commands
 - Tab completion for files and directories
 - Better `ls` option handling with combined flags like `-la` and `-al`
-- Fallback execution for other commands through `cmd.exe /C`
-- Pipe and redirection detection for commands using `|`, `<`, `>`, and `>>`
+- Environment variable expansion for `%VAR%` and `$VAR`
+- Native simple pipeline support using `|`
+- Native redirection support using `>`, `>>`, and `<`
+- External command execution through `cmd.exe /C` inside the shell execution engine
 - Basic trimming of whitespace
 - Basic quoted path handling for single-path commands like `cd "My Folder"`
 
 ## Features Not Yet Added
 
 - Background jobs
-- Environment variable expansion like `$HOME`
 - Linux-style wildcard or glob expansion like `*.txt` inside built-ins
-- Native built-in support inside pipelines, for example `ls | ...`
-- Native built-in support with input and output redirection
+- Linux-style `${VAR}` expansion
+- Native built-in input streaming from redirected stdin

@@ -159,12 +159,39 @@ This document records the major stages of the project from the initial version u
   - Verified `ls`, `ls -l`, `ls -a`, `ls -la`, `ls -al`, `ls -l .`, `ls -a .`, and invalid flag handling
   - Tab completion was implemented for interactive console input, but not fully automatable in the current non-interactive test harness
 
+## Stage 9: v6 Milestone on Feature Branch
+
+- Commit:
+  - Pending at the time of writing this update step; commit created in the current v6 workflow
+- Branch:
+  - `feature/v2-pipes-redirection`
+- Main files updated:
+  - `myshell.c`
+  - `FEATURES.md`
+  - `DEVELOPMENT_LOG.md`
+  - `README.md`
+  - `myshell_v6.exe`
+- Relevant features added:
+  - Environment variable expansion for `%VAR%` and `$VAR`
+  - Native output redirection using `>`
+  - Native append redirection using `>>`
+  - Native input redirection using `<`
+  - Native simple pipeline support using `|`
+  - Pipeline execution between shell built-ins and standard external commands
+  - External commands now run inside the shell execution path with inherited redirected handles
+- Relevant testing performed:
+  - Built cleanly as `myshell_v6.exe`
+  - Verified `%USERPROFILE%` and `$USERPROFILE` expansion
+  - Verified `pwd > file`, `echo ... > file`, `echo ... >> file`, and `findstr ... < file`
+  - Verified pipelines such as `ls | findstr README` and `echo hello world | findstr hello`
+  - Found and fixed a child-process stdio handle inheritance bug during testing
+
 ## Current State Summary
 
 - Main branch latest documented commit:
   - `0cf918c`
 - Feature branch latest commit:
-  - `2cb68d0`
+  - `6901e1d`
 - Current feature branch:
   - `feature/v2-pipes-redirection`
 - Current versioned executables present:
@@ -173,11 +200,11 @@ This document records the major stages of the project from the initial version u
   - `myshell_v3.exe`
   - `myshell_v4.exe`
   - `myshell_v5.exe`
+  - `myshell_v6.exe`
 
 ## Features Still Not Implemented
 
 - Background jobs
-- Environment variable expansion like `$HOME`
 - Linux-style wildcard or glob expansion inside built-ins
-- Native built-in support for piping
-- Native built-in support for redirection
+- Linux-style `${VAR}` expansion
+- Native built-in input streaming from redirected stdin

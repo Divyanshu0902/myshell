@@ -35,15 +35,17 @@ Builds are versioned as separate executables such as `myshell_v2.exe`, `myshell_
 - Tab completion for files and directories in the interactive console
 - Better quoted argument parsing for built-in commands with spaced paths
 - Better `ls` option handling including combined flags like `-la`
-- Pipe and redirection detection for commands containing `|`, `<`, `>`, and `>>`
-- Fallback execution for other commands using `cmd.exe /C`
+- Environment variable expansion for `%VAR%` and `$VAR`
+- Native simple pipeline support using `|`
+- Native redirection support using `>`, `>>`, and `<`
+- External command execution through `cmd.exe /C` within the shell execution engine
 
 ## Not Implemented Yet
 
 - Background jobs
-- Environment variable expansion like `$HOME`
 - Wildcard or glob expansion like `*.txt` inside built-in commands
-- Native built-in support inside pipelines and redirection
+- Linux-style `${VAR}` expansion
+- Native built-in input streaming from redirected stdin
 
 ## Project Files
 
@@ -52,6 +54,7 @@ Builds are versioned as separate executables such as `myshell_v2.exe`, `myshell_
 - `myshell_v3.exe` - versioned executable for the current v3 milestone
 - `myshell_v4.exe` - versioned executable for the current v4 milestone
 - `myshell_v5.exe` - versioned executable for the current v5 milestone
+- `myshell_v6.exe` - versioned executable for the current v6 milestone
 - `FEATURES.md` - quick feature status document
 - `DEVELOPMENT_LOG.md` - version-by-version project change log
 - `VERSIONING_METHOD.md` - project versioning approach
@@ -67,13 +70,13 @@ Builds are versioned as separate executables such as `myshell_v2.exe`, `myshell_
 If you have `gcc` installed:
 
 ```powershell
-gcc -Wall -Wextra -std=c11 myshell.c -o myshell_v5.exe
+gcc -Wall -Wextra -std=c11 myshell.c -o myshell_v6.exe
 ```
 
 ## Run
 
 ```powershell
-.\myshell_v5.exe
+.\myshell_v6.exe
 ```
 
 ## Example Session
@@ -92,6 +95,7 @@ myshell_v2.exe
 myshell_v3.exe
 myshell_v4.exe
 myshell_v5.exe
+myshell_v6.exe
 README.md
 FEATURES.md
 
@@ -102,13 +106,13 @@ myshell:D:\Projects\myShell$ help
 
 - This shell is not a full replacement for Bash, Zsh, PowerShell, or CMD.
 - Built-in commands are implemented directly in C for a more Linux-like feel on Windows.
-- Commands that are not built in are passed to `cmd.exe /C`.
+- External commands are launched through `cmd.exe /C` while redirection and simple pipelines are coordinated by the shell itself.
 
 ## Future Improvements
 
-- Add piping and redirection
-- Add native built-in support for piping and redirection
-- Add environment variable expansion
+- Add wildcard expansion for built-ins
+- Add background job execution
+- Add Linux-style `${VAR}` expansion
 - Support recursive file operations and more Unix-style flags
 
 ## License
