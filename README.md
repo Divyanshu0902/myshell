@@ -17,6 +17,8 @@ Builds are versioned as separate executables such as `myshell_v2.exe`, `myshell_
   - `cd <path>`
   - `pwd`
   - `history`
+  - `!!`
+  - `!n`
   - `ls`
   - `ls -l`
   - `cat <file>`
@@ -44,7 +46,8 @@ Builds are versioned as separate executables such as `myshell_v2.exe`, `myshell_
 ## Project Files
 
 - `myshell.c` - main source code for the shell
-- `myshell_v2.exe` - versioned executable built from the current v2 milestone
+- `myshell_v2.exe` - versioned executable for the v2 milestone
+- `myshell_v3.exe` - versioned executable for the current v3 milestone
 - `FEATURES.md` - quick feature status document
 
 ## Requirements
@@ -57,13 +60,13 @@ Builds are versioned as separate executables such as `myshell_v2.exe`, `myshell_
 If you have `gcc` installed:
 
 ```powershell
-gcc -Wall -Wextra -std=c11 myshell.c -o myshell_v2.exe
+gcc -Wall -Wextra -std=c11 myshell.c -o myshell_v3.exe
 ```
 
 ## Run
 
 ```powershell
-.\myshell_v2.exe
+.\myshell_v3.exe
 ```
 
 ## Example Session
@@ -72,9 +75,14 @@ gcc -Wall -Wextra -std=c11 myshell.c -o myshell_v2.exe
 myshell:D:\Projects\myShell$ pwd
 D:\Projects\myShell
 
+myshell:D:\Projects\myShell$ history
+   1  pwd
+   2  history
+
 myshell:D:\Projects\myShell$ ls
 myshell.c
 myshell_v2.exe
+myshell_v3.exe
 README.md
 FEATURES.md
 

@@ -19,6 +19,7 @@
 - `touch <file>`
 - `clear`
 - `history`
+- `!!` and `!n` history expansion
 - Fallback execution for other commands through `cmd.exe /C`
 - Pipe and redirection detection for commands using `|`, `<`, `>`, and `>>`
 - Basic trimming of whitespace
