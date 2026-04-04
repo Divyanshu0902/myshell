@@ -1,2 +1,5 @@
-node_modules/
+﻿node_modules/
 dist/
+.vite/
+electron-startup.stdout.log
+electron-startup.stderr.log
