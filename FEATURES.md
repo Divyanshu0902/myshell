@@ -3,7 +3,7 @@
 ## Features Added So Far
 
 - Interactive prompt loop
-- Prompt shows current working directory
+- Prompt label is `bolBhai>>`
 - `help` command
 - `exit` and `quit`
 - `cd <path>`
@@ -30,6 +30,7 @@
 - External command execution through `cmd.exe /C` inside the shell execution engine
 - Basic trimming of whitespace
 - Basic quoted path handling for single-path commands like `cd "My Folder"`
+- Machine-readable cwd control line for the Electron app bridge
 
 ## Features Not Yet Added
 
@@ -41,9 +42,13 @@
 ## Terminal App Status
 
 - Electron + React + TypeScript + Vite desktop app scaffold
-- xterm.js terminal renderer with the Concept A cyberpunk UI shell
+- xterm.js terminal renderer with the current branded apnaShell UI
 - Electron launcher script that clears inherited ELECTRON_RUN_AS_NODE before boot
 - Verified Electron startup and myshell_v6.exe shell bridge inside the desktop app
+- Branded `bolBhai>>` prompt rendering in the hosted terminal
+- `sunBhai>` output labeling and aligned multiline output formatting
+- Centered welcome banner rendered inside the terminal surface
+- Boxed working-directory indicator in the terminal section header
 
 
 

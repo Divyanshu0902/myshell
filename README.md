@@ -1,21 +1,21 @@
-# Mini Shell for Windows
+# apnaShell
 
-A simple custom mini shell written in C that runs on Windows and keeps several commands similar to a Linux shell.
+`apnaShell` is a custom Windows shell written in C, paired with a dedicated Electron desktop terminal host.
 
-This project is meant as a small learning-oriented shell implementation. It provides an interactive prompt, a set of built-in Unix-like commands, and a fallback path that runs unsupported commands through `cmd.exe /C`.
+The shell provides a Linux-like command set on Windows, while the desktop app provides the branded terminal UI, prompt/output formatting, and working-directory aware chrome.
 
 Builds are versioned as separate executables such as `myshell_v2.exe`, `myshell_v3.exe`, and so on as new milestones are implemented.
 
-The repository is now organized into dedicated areas:
+The repository is organized into:
 
 - `shell-core/` for the shell engine and shell executables
-- `terminal-app/` for the future desktop app
+- `terminal-app/` for the Electron desktop terminal app
 - `concepts/` for terminal app concept docs
 
 ## Current Features
 
 - Interactive shell prompt
-- Prompt displays the current working directory
+- Current shell prompt label: `bolBhai>>`
 - Built-in commands:
   - `help`
   - `exit`
@@ -45,6 +45,13 @@ The repository is now organized into dedicated areas:
 - Native simple pipeline support using `|`
 - Native redirection support using `>`, `>>`, and `<`
 - External command execution through `cmd.exe /C` within the shell execution engine
+- Machine-readable cwd control line for the desktop app shell bridge
+- Dedicated Electron desktop terminal app with:
+  - branded `bolBhai>>` prompt rendering
+  - `sunBhai>` output labeling
+  - centered welcome banner in the terminal
+  - boxed working-directory indicator in the terminal header
+  - custom frameless app chrome
 
 ## Not Implemented Yet
 
@@ -62,7 +69,7 @@ The repository is now organized into dedicated areas:
 - `shell-core/myshell_v4.exe` - versioned executable for the v4 milestone
 - `shell-core/myshell_v5.exe` - versioned executable for the v5 milestone
 - `shell-core/myshell_v6.exe` - versioned executable for the current v6 milestone
-- `terminal-app/` - future dedicated desktop terminal app
+- `terminal-app/` - dedicated desktop terminal app
 - `concepts/` - concept docs for the terminal app directions
 - `FEATURES.md` - quick feature status document
 - `DEVELOPMENT_LOG.md` - version-by-version project change log
@@ -72,7 +79,7 @@ The repository is now organized into dedicated areas:
 
 ## Terminal App
 
-The desktop app lives in `terminal-app/` and now launches through a dedicated Electron bootstrap that clears inherited `ELECTRON_RUN_AS_NODE` state before startup.
+The desktop app lives in `terminal-app/` and launches through a dedicated Electron bootstrap that clears inherited `ELECTRON_RUN_AS_NODE` state before startup.
 
 Build and launch it from the repository root with:
 
@@ -104,21 +111,21 @@ gcc -Wall -Wextra -std=c11 shell-core/myshell.c -o shell-core/myshell_v6.exe
 ## Example Session
 
 ```text
-myshell:D:\Projects\myShell$ pwd
+bolBhai>> pwd
 D:\Projects\myShell
 
-myshell:D:\Projects\myShell$ history
+bolBhai>> history
    1  pwd
    2  history
 
-myshell:D:\Projects\myShell$ ls
+bolBhai>> ls
 shell-core/
 terminal-app/
 concepts/
 README.md
 FEATURES.md
 
-myshell:D:\Projects\myShell$ help
+bolBhai>> help
 ```
 
 ## Notes

@@ -339,3 +339,48 @@ This document records the major stages of the project from the initial version u
 
 
 
+
+## Stage 15: Production UI Branding And Terminal Output Formatting
+
+- Commit:
+  - Current local main branch work after the terminal-app MVP merge
+- Branch:
+  - `main`
+- Main files updated:
+  - `shell-core/myshell.c`
+  - `shell-core/myshell_v6.exe`
+  - `terminal-app/electron/main.cjs`
+  - `terminal-app/src/App.tsx`
+  - `terminal-app/src/styles.css`
+  - `terminal-app/README.md`
+  - `README.md`
+  - `FEATURES.md`
+  - `DEVELOPMENT_LOG.md`
+- Relevant changes:
+  - renamed the visible desktop app branding to `apnaShell`
+  - changed the visible shell prompt label to `bolBhai>>`
+  - changed visible output labeling to `sunBhai>`
+  - added a centered welcome banner inside the terminal surface
+  - added a boxed working-directory indicator in the terminal section header
+  - fixed prompt/output ordering issues in the Electron shell bridge
+  - aligned multiline output formatting in the hosted terminal
+  - adjusted titlebar branding, status lights, and laptop-friendly default window sizing
+- Relevant testing performed:
+  - rebuilt `shell-core/myshell_v6.exe`
+  - rebuilt the renderer successfully with `npm run build`
+  - verified the Electron app still launches and the shell bridge remains active
+
+## Current State Summary
+
+- Active branch:
+  - `main`
+- Current shell executable target:
+  - `shell-core/myshell_v6.exe`
+- Current visible shell/app labels:
+  - app brand: `apnaShell`
+  - prompt label: `bolBhai>>`
+  - output label: `sunBhai>`
+- Current major verified flows:
+  - native shell build
+  - renderer production build
+  - Electron startup and shell bridge
