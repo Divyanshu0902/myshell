@@ -20,6 +20,8 @@
 - `clear`
 - `history`
 - `!!` and `!n` history expansion
+- Arrow-key input with basic line editing
+- Better quoted argument parsing for built-in commands
 - Fallback execution for other commands through `cmd.exe /C`
 - Pipe and redirection detection for commands using `|`, `<`, `>`, and `>>`
 - Basic trimming of whitespace
@@ -27,7 +29,6 @@
 
 ## Features Not Yet Added
 
-- Arrow-key navigation
 - Tab completion
 - Background jobs
 - Environment variable expansion like `$HOME`

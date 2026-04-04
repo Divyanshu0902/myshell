@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <ctype.h>
+#include <conio.h>
 #include <direct.h>
 #include <errno.h>
 #include <inttypes.h>
@@ -16,7 +17,8 @@
 #define MAX_LINE 2048
 #define MAX_PATH_ARG 1024
 #define HISTORY_SIZE 100
-#define SHELL_VERSION "v3"
+#define MAX_TOKENS 64
+#define SHELL_VERSION "v4"
 
 static char command_history[HISTORY_SIZE][MAX_LINE];
 static int history_count = 0;
@@ -159,14 +161,207 @@ static void strip_matching_quotes(char *text) {
     }
 }
 
-static void print_prompt(void) {
+static void format_prompt(char *buffer, size_t size) {
     char cwd[MAX_PATH];
 
     if (_getcwd(cwd, sizeof(cwd)) != NULL) {
-        printf("myshell:%s$ ", cwd);
+        _snprintf(buffer, size, "myshell:%s$ ", cwd);
     } else {
-        printf("myshell$ ");
+        _snprintf(buffer, size, "myshell$ ");
     }
+    buffer[size - 1] = '\0';
+}
+
+static void redraw_input_line(
+    const char *prompt,
+    const char *buffer,
+    size_t length,
+    size_t cursor
+) {
+    size_t index;
+
+    printf("\r%s%s ", prompt, buffer);
+    for (index = length; index > cursor; index--) {
+        putchar('\b');
+    }
+    fflush(stdout);
+}
+
+static void replace_input_buffer(
+    char *buffer,
+    size_t *length,
+    size_t *cursor,
+    const char *text,
+    const char *prompt
+) {
+    strncpy(buffer, text, MAX_LINE - 1);
+    buffer[MAX_LINE - 1] = '\0';
+    *length = strlen(buffer);
+    *cursor = *length;
+    redraw_input_line(prompt, buffer, *length, *cursor);
+}
+
+static int read_input_line(char *buffer, size_t size) {
+    char prompt[MAX_PATH + 16];
+    size_t length = 0;
+    size_t cursor = 0;
+    int history_index = history_count;
+
+    if (!_isatty(_fileno(stdin))) {
+        return fgets(buffer, (int)size, stdin) != NULL;
+    }
+
+    format_prompt(prompt, sizeof(prompt));
+    fputs(prompt, stdout);
+    fflush(stdout);
+    buffer[0] = '\0';
+
+    while (true) {
+        int ch = _getch();
+
+        if (ch == '\r') {
+            buffer[length] = '\0';
+            putchar('\n');
+            return 1;
+        }
+
+        if (ch == '\b') {
+            if (cursor > 0) {
+                memmove(buffer + cursor - 1, buffer + cursor, length - cursor + 1);
+                cursor--;
+                length--;
+                redraw_input_line(prompt, buffer, length, cursor);
+            }
+            continue;
+        }
+
+        if (ch == 0 || ch == 224) {
+            int extended = _getch();
+
+            if (extended == 75) {
+                if (cursor > 0) {
+                    cursor--;
+                    redraw_input_line(prompt, buffer, length, cursor);
+                }
+            } else if (extended == 77) {
+                if (cursor < length) {
+                    cursor++;
+                    redraw_input_line(prompt, buffer, length, cursor);
+                }
+            } else if (extended == 72) {
+                if (history_count > 0 && history_index > 0) {
+                    history_index--;
+                    replace_input_buffer(
+                        buffer,
+                        &length,
+                        &cursor,
+                        command_history[history_index],
+                        prompt
+                    );
+                }
+            } else if (extended == 80) {
+                if (history_index < history_count - 1) {
+                    history_index++;
+                    replace_input_buffer(
+                        buffer,
+                        &length,
+                        &cursor,
+                        command_history[history_index],
+                        prompt
+                    );
+                } else if (history_index == history_count - 1) {
+                    history_index = history_count;
+                    replace_input_buffer(buffer, &length, &cursor, "", prompt);
+                }
+            } else if (extended == 71) {
+                cursor = 0;
+                redraw_input_line(prompt, buffer, length, cursor);
+            } else if (extended == 79) {
+                cursor = length;
+                redraw_input_line(prompt, buffer, length, cursor);
+            } else if (extended == 83) {
+                if (cursor < length) {
+                    memmove(buffer + cursor, buffer + cursor + 1, length - cursor);
+                    length--;
+                    redraw_input_line(prompt, buffer, length, cursor);
+                }
+            }
+            continue;
+        }
+
+        if (isprint(ch) && length + 1 < size) {
+            memmove(buffer + cursor + 1, buffer + cursor, length - cursor + 1);
+            buffer[cursor] = (char)ch;
+            cursor++;
+            length++;
+            history_index = history_count;
+            redraw_input_line(prompt, buffer, length, cursor);
+        }
+    }
+}
+
+static int split_arguments(char *input, char *tokens[], int max_tokens) {
+    int count = 0;
+    char *cursor = input;
+
+    while (*cursor != '\0') {
+        char *start;
+        char *write;
+        char quote = '\0';
+
+        while (isspace((unsigned char)*cursor)) {
+            cursor++;
+        }
+
+        if (*cursor == '\0') {
+            break;
+        }
+
+        if (count >= max_tokens) {
+            fprintf(stderr, "too many arguments\n");
+            return -1;
+        }
+
+        start = cursor;
+        write = cursor;
+
+        while (*cursor != '\0') {
+            if (quote == '\0' && (*cursor == '"' || *cursor == '\'')) {
+                quote = *cursor;
+                cursor++;
+                continue;
+            }
+
+            if (quote != '\0' && *cursor == quote) {
+                quote = '\0';
+                cursor++;
+                continue;
+            }
+
+            if (quote == '\0' && isspace((unsigned char)*cursor)) {
+                break;
+            }
+
+            *write = *cursor;
+            write++;
+            cursor++;
+        }
+
+        if (quote != '\0') {
+            fprintf(stderr, "unterminated quoted string\n");
+            return -1;
+        }
+
+        *write = '\0';
+        tokens[count++] = start;
+
+        while (isspace((unsigned char)*cursor)) {
+            *cursor = '\0';
+            cursor++;
+        }
+    }
+
+    return count;
 }
 
 static void print_help(void) {
@@ -186,6 +381,7 @@ static void print_help(void) {
     puts("  mv <src> <dest>      Move or rename a file");
     puts("  touch <file>         Create an empty file if missing");
     puts("  clear                Clear the screen");
+    puts("  Arrow keys           Edit input and browse history");
     puts("  Pipes and redirection use cmd.exe /C");
     puts("  Other commands run through cmd.exe /C");
 }
@@ -234,22 +430,29 @@ static int builtin_pwd(void) {
 }
 
 static int read_single_path(char *args, char *output, size_t output_size) {
-    char *trimmed;
+    char buffer[MAX_LINE];
+    char *tokens[2];
+    int token_count;
 
     if (args == NULL) {
         fprintf(stderr, "missing path argument\n");
         return 1;
     }
 
-    trimmed = trim_whitespace(args);
-    if (*trimmed == '\0') {
+    strncpy(buffer, args, sizeof(buffer) - 1);
+    buffer[sizeof(buffer) - 1] = '\0';
+    token_count = split_arguments(buffer, tokens, 2);
+    if (token_count < 0) {
+        return 1;
+    }
+
+    if (token_count == 0) {
         fprintf(stderr, "missing path argument\n");
         return 1;
     }
 
-    strncpy(output, trimmed, output_size - 1);
+    strncpy(output, tokens[0], output_size - 1);
     output[output_size - 1] = '\0';
-    strip_matching_quotes(output);
     return 0;
 }
 
@@ -261,8 +464,8 @@ static int read_two_paths(
     size_t second_size
 ) {
     char buffer[MAX_LINE];
-    char *left;
-    char *right;
+    char *tokens[3];
+    int token_count;
 
     if (args == NULL) {
         fprintf(stderr, "expected source and destination paths\n");
@@ -271,34 +474,22 @@ static int read_two_paths(
 
     strncpy(buffer, args, sizeof(buffer) - 1);
     buffer[sizeof(buffer) - 1] = '\0';
+    token_count = split_arguments(buffer, tokens, 3);
 
-    left = trim_whitespace(buffer);
-    right = left;
-    while (*right != '\0' && !isspace((unsigned char)*right)) {
-        right++;
+    if (token_count < 0) {
+        return 1;
     }
 
-    if (*right == '\0') {
+    if (token_count != 2) {
         fprintf(stderr, "expected source and destination paths\n");
         return 1;
     }
 
-    *right = '\0';
-    right++;
-    right = trim_whitespace(right);
-
-    if (*right == '\0') {
-        fprintf(stderr, "expected source and destination paths\n");
-        return 1;
-    }
-
-    strncpy(first, left, first_size - 1);
+    strncpy(first, tokens[0], first_size - 1);
     first[first_size - 1] = '\0';
-    strip_matching_quotes(first);
 
-    strncpy(second, right, second_size - 1);
+    strncpy(second, tokens[1], second_size - 1);
     second[second_size - 1] = '\0';
-    strip_matching_quotes(second);
 
     return 0;
 }
@@ -314,24 +505,36 @@ static int builtin_ls(char *args) {
     if (args == NULL || *trim_whitespace(args) == '\0') {
         strcpy(path, ".");
     } else {
-        char raw[MAX_PATH_ARG];
-        char *cursor;
+        char buffer[MAX_LINE];
+        char *tokens[3];
+        int token_count;
 
-        if (read_single_path(args, raw, sizeof(raw)) != 0) {
+        strncpy(buffer, args, sizeof(buffer) - 1);
+        buffer[sizeof(buffer) - 1] = '\0';
+        token_count = split_arguments(buffer, tokens, 3);
+        if (token_count < 0) {
             return 1;
         }
 
-        if (strcmp(raw, "-a") == 0) {
+        if (token_count == 0) {
+            strcpy(path, ".");
+        } else if (token_count == 1 && strcmp(tokens[0], "-a") == 0) {
             show_all = true;
             strcpy(path, ".");
-        } else if (strcmp(raw, "-l") == 0) {
+        } else if (token_count == 1 && strcmp(tokens[0], "-l") == 0) {
             long_format = true;
             strcpy(path, ".");
-        } else {
-            strncpy(path, raw, sizeof(path) - 1);
+        } else if (token_count == 2 && strcmp(tokens[0], "-a") == 0) {
+            show_all = true;
+            strncpy(path, tokens[1], sizeof(path) - 1);
             path[sizeof(path) - 1] = '\0';
-            cursor = trim_whitespace(path);
-            memmove(path, cursor, strlen(cursor) + 1);
+        } else if (token_count == 2 && strcmp(tokens[0], "-l") == 0) {
+            long_format = true;
+            strncpy(path, tokens[1], sizeof(path) - 1);
+            path[sizeof(path) - 1] = '\0';
+        } else {
+            strncpy(path, tokens[0], sizeof(path) - 1);
+            path[sizeof(path) - 1] = '\0';
         }
     }
 
@@ -371,9 +574,11 @@ static int builtin_ls(char *args) {
 
 static int builtin_cat(char *args) {
     char buffer[MAX_LINE];
-    char *token;
+    char *tokens[MAX_TOKENS];
     FILE *file;
     int ch;
+    int index;
+    int token_count;
     bool printed_any = false;
 
     if (args == NULL || *trim_whitespace(args) == '\0') {
@@ -383,13 +588,15 @@ static int builtin_cat(char *args) {
 
     strncpy(buffer, args, sizeof(buffer) - 1);
     buffer[sizeof(buffer) - 1] = '\0';
-    token = strtok(buffer, " \t\r\n");
+    token_count = split_arguments(buffer, tokens, MAX_TOKENS);
+    if (token_count < 0) {
+        return 1;
+    }
 
-    while (token != NULL) {
-        strip_matching_quotes(token);
-        file = fopen(token, "r");
+    for (index = 0; index < token_count; index++) {
+        file = fopen(tokens[index], "r");
         if (file == NULL) {
-            fprintf(stderr, "cat: cannot open '%s'\n", token);
+            fprintf(stderr, "cat: cannot open '%s'\n", tokens[index]);
             return 1;
         }
 
@@ -399,7 +606,6 @@ static int builtin_cat(char *args) {
 
         fclose(file);
         printed_any = true;
-        token = strtok(NULL, " \t\r\n");
     }
 
     if (printed_any) {
@@ -697,9 +903,7 @@ int main(void) {
     puts("Linux-like built-ins are enabled. Type 'help' for commands.");
 
     while (true) {
-        print_prompt();
-
-        if (fgets(line, sizeof(line), stdin) == NULL) {
+        if (!read_input_line(line, sizeof(line))) {
             putchar('\n');
             break;
         }

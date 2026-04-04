@@ -31,6 +31,8 @@ Builds are versioned as separate executables such as `myshell_v2.exe`, `myshell_
   - `clear`
 - Basic trimming of extra whitespace
 - Basic quoted path handling for commands such as `cd "My Folder"`
+- Arrow-key input with basic line editing in the interactive console
+- Better quoted argument parsing for built-in commands with spaced paths
 - Pipe and redirection detection for commands containing `|`, `<`, `>`, and `>>`
 - Fallback execution for other commands using `cmd.exe /C`
 
@@ -48,6 +50,7 @@ Builds are versioned as separate executables such as `myshell_v2.exe`, `myshell_
 - `myshell.c` - main source code for the shell
 - `myshell_v2.exe` - versioned executable for the v2 milestone
 - `myshell_v3.exe` - versioned executable for the current v3 milestone
+- `myshell_v4.exe` - versioned executable for the current v4 milestone
 - `FEATURES.md` - quick feature status document
 
 ## Requirements
@@ -60,13 +63,13 @@ Builds are versioned as separate executables such as `myshell_v2.exe`, `myshell_
 If you have `gcc` installed:
 
 ```powershell
-gcc -Wall -Wextra -std=c11 myshell.c -o myshell_v3.exe
+gcc -Wall -Wextra -std=c11 myshell.c -o myshell_v4.exe
 ```
 
 ## Run
 
 ```powershell
-.\myshell_v3.exe
+.\myshell_v4.exe
 ```
 
 ## Example Session
@@ -99,7 +102,6 @@ myshell:D:\Projects\myShell$ help
 
 - Add piping and redirection
 - Add native built-in support for piping and redirection
-- Add arrow-key editing
 - Add tab completion
 - Improve parsing for quoted arguments
 - Support recursive file operations and more Unix-style flags
