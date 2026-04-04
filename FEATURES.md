@@ -37,3 +37,11 @@
 - Linux-style wildcard or glob expansion like `*.txt` inside built-ins
 - Linux-style `${VAR}` expansion
 - Native built-in input streaming from redirected stdin
+
+## Terminal App Status
+
+- Electron + React + TypeScript + Vite desktop app scaffold
+- xterm.js terminal renderer with the Concept A cyberpunk UI shell
+- Electron launcher script that clears inherited ELECTRON_RUN_AS_NODE before boot
+- Verified Electron startup and myshell_v6.exe shell bridge inside the desktop app
+

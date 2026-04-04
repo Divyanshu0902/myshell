@@ -210,6 +210,32 @@ This document records the major stages of the project from the initial version u
   - verified the versioned executable still runs from its new location
   - confirmed documentation and project structure were updated to match the move
 
+
+## Stage 11: Terminal App Startup Fix And Launch Verification
+
+- Commit:
+  - Pending at the time of writing this update step; commit created in the current terminal-app workflow
+- Branch:
+  - `feature/v2-pipes-redirection`
+- Main files updated:
+  - `terminal-app/electron/main.cjs`
+  - `terminal-app/electron/preload.cjs`
+  - `terminal-app/package.json`
+  - `terminal-app/scripts/electron-launch.cjs`
+  - `terminal-app/README.md`
+  - `README.md`
+  - `FEATURES.md`
+  - `DEVELOPMENT_LOG.md`
+- Relevant changes:
+  - identified the Electron startup blocker as an inherited global `ELECTRON_RUN_AS_NODE=1` environment variable in the local shell session
+  - restored the standard Electron runtime imports in the main and preload processes
+  - added a dedicated Electron launcher script that clears `ELECTRON_RUN_AS_NODE` before booting the app
+  - added a stable `npm run start` entrypoint for production-style Electron launch verification
+  - started the `myshell_v6.exe` child process when the window finishes loading so the shell bridge is available as soon as the app is ready
+- Relevant testing performed:
+  - rebuilt the renderer successfully with `npm run build`
+  - verified the Electron app stayed running when launched through the new launcher with no stderr output
+  - verified a live `myshell_v6.exe` child process was started by the desktop app during launch
 ## Current State Summary
 
 - Main branch latest documented commit:
@@ -232,3 +258,4 @@ This document records the major stages of the project from the initial version u
 - Linux-style wildcard or glob expansion inside built-ins
 - Linux-style `${VAR}` expansion
 - Native built-in input streaming from redirected stdin
+

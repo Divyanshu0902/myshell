@@ -69,6 +69,19 @@ The repository is now organized into dedicated areas:
 - `VERSIONING_METHOD.md` - project versioning approach
 - `WORKFLOW.md` - fixed implementation workflow
 
+
+## Terminal App
+
+The desktop app lives in `terminal-app/` and now launches through a dedicated Electron bootstrap that clears inherited `ELECTRON_RUN_AS_NODE` state before startup.
+
+Build and launch it from the repository root with:
+
+```powershell
+cd terminal-app
+npm install
+npm run build
+npm run start
+```
 ## Requirements
 
 - Windows
@@ -124,3 +137,4 @@ myshell:D:\Projects\myShell$ help
 ## License
 
 You can add a license here before publishing to GitHub. The common choice is the MIT License.
+

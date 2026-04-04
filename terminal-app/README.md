@@ -124,3 +124,48 @@ This folder should become the home for:
 - app-specific docs
 - future terminal UI iterations for Concept A
 
+
+## Current Implementation Status
+
+The first implementation milestone is now working end to end.
+
+Implemented and verified:
+
+- Electron app shell
+- React + TypeScript + Vite frontend scaffold
+- Electron preload bridge
+- child-process launch path for `shell-core/myshell_v6.exe`
+- `xterm.js` renderer integration
+- first-pass Concept A cyberpunk interface
+- production renderer build verified with `npm run build`
+- Electron desktop launch verified through the project launcher
+- shell bridge verified with a live `myshell_v6.exe` child process during app startup
+
+## Quick Start
+
+From the repository root:
+
+```powershell
+cd terminal-app
+npm install
+npm run dev
+```
+
+Production-style build and launch:
+
+```powershell
+cd terminal-app
+npm run build
+npm run start
+```
+
+Expected shell target:
+
+- `../shell-core/myshell_v6.exe`
+
+## Notes For Current State
+
+- the app is designed to launch the shell from the repository root
+- the terminal UI includes a local prompt/input layer because the shell is being hosted over standard process pipes rather than a native TTY session
+- the Electron launcher clears any inherited `ELECTRON_RUN_AS_NODE` value before startup so the runtime uses the real Electron APIs
+- if you bypass the npm launcher and start Electron manually, clear `ELECTRON_RUN_AS_NODE` first or use the project launcher instead
