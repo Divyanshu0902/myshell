@@ -4,6 +4,8 @@ A simple custom mini shell written in C that runs on Windows and keeps several c
 
 This project is meant as a small learning-oriented shell implementation. It provides an interactive prompt, a set of built-in Unix-like commands, and a fallback path that runs unsupported commands through `cmd.exe /C`.
 
+Builds are versioned as separate executables such as `myshell_v2.exe`, `myshell_v3.exe`, and so on as new milestones are implemented.
+
 ## Current Features
 
 - Interactive shell prompt
@@ -14,6 +16,7 @@ This project is meant as a small learning-oriented shell implementation. It prov
   - `quit`
   - `cd <path>`
   - `pwd`
+  - `history`
   - `ls`
   - `ls -l`
   - `cat <file>`
@@ -26,22 +29,22 @@ This project is meant as a small learning-oriented shell implementation. It prov
   - `clear`
 - Basic trimming of extra whitespace
 - Basic quoted path handling for commands such as `cd "My Folder"`
+- Pipe and redirection detection for commands containing `|`, `<`, `>`, and `>>`
 - Fallback execution for other commands using `cmd.exe /C`
 
 ## Not Implemented Yet
 
-- Pipes like `ls | findstr txt`
-- Input and output redirection like `<` and `>`
-- Command history
 - Arrow-key navigation
 - Tab completion
 - Background jobs
 - Environment variable expansion like `$HOME`
 - Wildcard or glob expansion like `*.txt` inside built-in commands
+- Native built-in support inside pipelines and redirection
 
 ## Project Files
 
 - `myshell.c` - main source code for the shell
+- `myshell_v2.exe` - versioned executable built from the current v2 milestone
 - `FEATURES.md` - quick feature status document
 
 ## Requirements
@@ -54,13 +57,13 @@ This project is meant as a small learning-oriented shell implementation. It prov
 If you have `gcc` installed:
 
 ```powershell
-gcc -Wall -Wextra -std=c11 myshell.c -o myshell.exe
+gcc -Wall -Wextra -std=c11 myshell.c -o myshell_v2.exe
 ```
 
 ## Run
 
 ```powershell
-.\myshell.exe
+.\myshell_v2.exe
 ```
 
 ## Example Session
@@ -71,6 +74,7 @@ D:\Projects\myShell
 
 myshell:D:\Projects\myShell$ ls
 myshell.c
+myshell_v2.exe
 README.md
 FEATURES.md
 
@@ -86,7 +90,8 @@ myshell:D:\Projects\myShell$ help
 ## Future Improvements
 
 - Add piping and redirection
-- Add command history and arrow-key editing
+- Add native built-in support for piping and redirection
+- Add arrow-key editing
 - Add tab completion
 - Improve parsing for quoted arguments
 - Support recursive file operations and more Unix-style flags

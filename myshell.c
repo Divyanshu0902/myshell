@@ -15,6 +15,60 @@
 
 #define MAX_LINE 2048
 #define MAX_PATH_ARG 1024
+#define HISTORY_SIZE 100
+
+static char command_history[HISTORY_SIZE][MAX_LINE];
+static int history_count = 0;
+
+static void add_history_entry(const char *line) {
+    int slot;
+
+    if (line == NULL || *line == '\0') {
+        return;
+    }
+
+    if (history_count < HISTORY_SIZE) {
+        slot = history_count;
+        history_count++;
+    } else {
+        int index;
+        for (index = 1; index < HISTORY_SIZE; index++) {
+            strcpy(command_history[index - 1], command_history[index]);
+        }
+        slot = HISTORY_SIZE - 1;
+    }
+
+    strncpy(command_history[slot], line, MAX_LINE - 1);
+    command_history[slot][MAX_LINE - 1] = '\0';
+}
+
+static void print_history(void) {
+    int index;
+
+    for (index = 0; index < history_count; index++) {
+        printf("%4d  %s\n", index + 1, command_history[index]);
+    }
+}
+
+static bool contains_shell_operators(const char *text) {
+    bool in_single_quotes = false;
+    bool in_double_quotes = false;
+
+    while (*text != '\0') {
+        if (*text == '"' && !in_single_quotes) {
+            in_double_quotes = !in_double_quotes;
+        } else if (*text == '\'' && !in_double_quotes) {
+            in_single_quotes = !in_single_quotes;
+        } else if (!in_single_quotes && !in_double_quotes) {
+            if (*text == '|' || *text == '<' || *text == '>') {
+                return true;
+            }
+        }
+        text++;
+    }
+
+    return false;
+}
 
 static int print_windows_error(const char *action, const char *target) {
     DWORD error = GetLastError();
@@ -90,6 +144,7 @@ static void print_help(void) {
     puts("  exit, quit           Close the shell");
     puts("  cd <path>            Change directory");
     puts("  pwd                  Print current directory");
+    puts("  history              Show recent commands");
     puts("  ls [path]            List files");
     puts("  cat <file...>        Print file contents");
     puts("  mkdir <dir>          Create a directory");
@@ -99,6 +154,7 @@ static void print_help(void) {
     puts("  mv <src> <dest>      Move or rename a file");
     puts("  touch <file>         Create an empty file if missing");
     puts("  clear                Clear the screen");
+    puts("  Pipes and redirection use cmd.exe /C");
     puts("  Other commands run through cmd.exe /C");
 }
 
@@ -455,6 +511,9 @@ static int run_external_command(const char *command_line) {
         command_line
     );
 
+    fflush(stdout);
+    fflush(stderr);
+
     created = CreateProcessA(
         NULL,
         full_command,
@@ -493,6 +552,12 @@ static bool handle_command(char *line) {
 
     strncpy(full_line, command, sizeof(full_line) - 1);
     full_line[sizeof(full_line) - 1] = '\0';
+    add_history_entry(full_line);
+
+    if (contains_shell_operators(full_line)) {
+        run_external_command(full_line);
+        return true;
+    }
 
     args = command;
     while (*args != '\0' && !isspace((unsigned char)*args)) {
@@ -522,6 +587,11 @@ static bool handle_command(char *line) {
 
     if (_stricmp(command, "pwd") == 0) {
         builtin_pwd();
+        return true;
+    }
+
+    if (_stricmp(command, "history") == 0) {
+        print_history();
         return true;
     }
 
@@ -577,7 +647,7 @@ static bool handle_command(char *line) {
 int main(void) {
     char line[MAX_LINE];
 
-    puts("Mini Windows Shell");
+    puts("Mini Windows Shell v2");
     puts("Linux-like built-ins are enabled. Type 'help' for commands.");
 
     while (true) {

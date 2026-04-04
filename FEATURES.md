@@ -18,17 +18,18 @@
 - `mv <src> <dest>`
 - `touch <file>`
 - `clear`
+- `history`
 - Fallback execution for other commands through `cmd.exe /C`
+- Pipe and redirection detection for commands using `|`, `<`, `>`, and `>>`
 - Basic trimming of whitespace
 - Basic quoted path handling for single-path commands like `cd "My Folder"`
 
 ## Features Not Yet Added
 
-- Pipes like `ls | findstr txt`
-- Redirection like `>` or `<`
-- Command history
 - Arrow-key navigation
 - Tab completion
 - Background jobs
 - Environment variable expansion like `$HOME`
 - Linux-style wildcard or glob expansion like `*.txt` inside built-ins
+- Native built-in support inside pipelines, for example `ls | ...`
+- Native built-in support with input and output redirection
