@@ -32,14 +32,14 @@ Builds are versioned as separate executables such as `myshell_v2.exe`, `myshell_
 - Basic trimming of extra whitespace
 - Basic quoted path handling for commands such as `cd "My Folder"`
 - Arrow-key input with basic line editing in the interactive console
+- Tab completion for files and directories in the interactive console
 - Better quoted argument parsing for built-in commands with spaced paths
+- Better `ls` option handling including combined flags like `-la`
 - Pipe and redirection detection for commands containing `|`, `<`, `>`, and `>>`
 - Fallback execution for other commands using `cmd.exe /C`
 
 ## Not Implemented Yet
 
-- Arrow-key navigation
-- Tab completion
 - Background jobs
 - Environment variable expansion like `$HOME`
 - Wildcard or glob expansion like `*.txt` inside built-in commands
@@ -51,7 +51,11 @@ Builds are versioned as separate executables such as `myshell_v2.exe`, `myshell_
 - `myshell_v2.exe` - versioned executable for the v2 milestone
 - `myshell_v3.exe` - versioned executable for the current v3 milestone
 - `myshell_v4.exe` - versioned executable for the current v4 milestone
+- `myshell_v5.exe` - versioned executable for the current v5 milestone
 - `FEATURES.md` - quick feature status document
+- `DEVELOPMENT_LOG.md` - version-by-version project change log
+- `VERSIONING_METHOD.md` - project versioning approach
+- `WORKFLOW.md` - fixed implementation workflow
 
 ## Requirements
 
@@ -63,13 +67,13 @@ Builds are versioned as separate executables such as `myshell_v2.exe`, `myshell_
 If you have `gcc` installed:
 
 ```powershell
-gcc -Wall -Wextra -std=c11 myshell.c -o myshell_v4.exe
+gcc -Wall -Wextra -std=c11 myshell.c -o myshell_v5.exe
 ```
 
 ## Run
 
 ```powershell
-.\myshell_v4.exe
+.\myshell_v5.exe
 ```
 
 ## Example Session
@@ -86,6 +90,8 @@ myshell:D:\Projects\myShell$ ls
 myshell.c
 myshell_v2.exe
 myshell_v3.exe
+myshell_v4.exe
+myshell_v5.exe
 README.md
 FEATURES.md
 
@@ -102,8 +108,7 @@ myshell:D:\Projects\myShell$ help
 
 - Add piping and redirection
 - Add native built-in support for piping and redirection
-- Add tab completion
-- Improve parsing for quoted arguments
+- Add environment variable expansion
 - Support recursive file operations and more Unix-style flags
 
 ## License

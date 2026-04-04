@@ -18,7 +18,8 @@
 #define MAX_PATH_ARG 1024
 #define HISTORY_SIZE 100
 #define MAX_TOKENS 64
-#define SHELL_VERSION "v4"
+#define MAX_MATCHES 256
+#define SHELL_VERSION "v5"
 
 static char command_history[HISTORY_SIZE][MAX_LINE];
 static int history_count = 0;
@@ -101,6 +102,18 @@ static bool contains_shell_operators(const char *text) {
     }
 
     return false;
+}
+
+static bool starts_with_ignore_case(const char *text, const char *prefix) {
+    while (*prefix != '\0') {
+        if (tolower((unsigned char)*text) != tolower((unsigned char)*prefix)) {
+            return false;
+        }
+        text++;
+        prefix++;
+    }
+
+    return true;
 }
 
 static int print_windows_error(const char *action, const char *target) {
@@ -201,6 +214,342 @@ static void replace_input_buffer(
     redraw_input_line(prompt, buffer, *length, *cursor);
 }
 
+static void find_token_bounds(
+    const char *buffer,
+    size_t cursor,
+    size_t *token_start,
+    size_t *token_end,
+    bool *quoted,
+    char *quote_char
+) {
+    size_t index;
+    bool in_single_quotes = false;
+    bool in_double_quotes = false;
+    size_t current_start = 0;
+
+    *quoted = false;
+    *quote_char = '\0';
+
+    for (index = 0; index < cursor; index++) {
+        if (buffer[index] == '"' && !in_single_quotes) {
+            in_double_quotes = !in_double_quotes;
+            if (index == current_start) {
+                *quoted = true;
+                *quote_char = '"';
+                current_start = index + 1;
+            }
+            continue;
+        }
+
+        if (buffer[index] == '\'' && !in_double_quotes) {
+            in_single_quotes = !in_single_quotes;
+            if (index == current_start) {
+                *quoted = true;
+                *quote_char = '\'';
+                current_start = index + 1;
+            }
+            continue;
+        }
+
+        if (!in_single_quotes && !in_double_quotes &&
+            isspace((unsigned char)buffer[index])) {
+            current_start = index + 1;
+            *quoted = false;
+            *quote_char = '\0';
+        }
+    }
+
+    *token_start = current_start;
+    *token_end = cursor;
+
+    while (buffer[*token_end] != '\0') {
+        if (!in_single_quotes && !in_double_quotes &&
+            isspace((unsigned char)buffer[*token_end])) {
+            break;
+        }
+
+        if (buffer[*token_end] == '"' && !in_single_quotes) {
+            in_double_quotes = !in_double_quotes;
+            break;
+        }
+
+        if (buffer[*token_end] == '\'' && !in_double_quotes) {
+            in_single_quotes = !in_single_quotes;
+            break;
+        }
+
+        (*token_end)++;
+    }
+}
+
+static void longest_common_prefix(
+    char matches[][MAX_PATH_ARG],
+    int match_count,
+    char *output,
+    size_t output_size
+) {
+    size_t prefix_length;
+    int index;
+
+    if (match_count <= 0) {
+        output[0] = '\0';
+        return;
+    }
+
+    strncpy(output, matches[0], output_size - 1);
+    output[output_size - 1] = '\0';
+    prefix_length = strlen(output);
+
+    for (index = 1; index < match_count; index++) {
+        size_t shared = 0;
+        while (shared < prefix_length &&
+               output[shared] != '\0' &&
+               matches[index][shared] != '\0' &&
+               tolower((unsigned char)output[shared]) ==
+                   tolower((unsigned char)matches[index][shared])) {
+            shared++;
+        }
+        output[shared] = '\0';
+        prefix_length = shared;
+    }
+}
+
+static int replace_range_in_buffer(
+    char *buffer,
+    size_t size,
+    size_t *length,
+    size_t *cursor,
+    size_t start,
+    size_t end,
+    const char *replacement
+) {
+    size_t replacement_length = strlen(replacement);
+    size_t tail_length = *length - end;
+
+    if (start > end || end > *length) {
+        return 0;
+    }
+
+    if (start + replacement_length + tail_length + 1 > size) {
+        return 0;
+    }
+
+    memmove(
+        buffer + start + replacement_length,
+        buffer + end,
+        tail_length + 1
+    );
+    memcpy(buffer + start, replacement, replacement_length);
+    *length = start + replacement_length + tail_length;
+    *cursor = start + replacement_length;
+    return 1;
+}
+
+static void print_completion_matches(
+    char matches[][MAX_PATH_ARG],
+    int match_count,
+    bool is_dir[],
+    const char *prompt,
+    const char *buffer,
+    size_t length,
+    size_t cursor
+) {
+    int index;
+
+    putchar('\n');
+    for (index = 0; index < match_count; index++) {
+        printf("%s%s\n", matches[index], is_dir[index] ? "/" : "");
+    }
+    redraw_input_line(prompt, buffer, length, cursor);
+}
+
+static void handle_tab_completion(
+    char *buffer,
+    size_t size,
+    size_t *length,
+    size_t *cursor,
+    const char *prompt
+) {
+    size_t token_start;
+    size_t token_end;
+    size_t last_separator;
+    size_t index;
+    size_t replace_start;
+    bool quoted;
+    char quote_char;
+    char token[MAX_PATH_ARG];
+    char directory_part[MAX_PATH_ARG];
+    char prefix[MAX_PATH_ARG];
+    char search_path[MAX_PATH_ARG + 4];
+    char matches[MAX_MATCHES][MAX_PATH_ARG];
+    bool match_is_dir[MAX_MATCHES];
+    char common_prefix[MAX_PATH_ARG];
+    int match_count = 0;
+    WIN32_FIND_DATAA entry;
+    HANDLE handle;
+
+    find_token_bounds(buffer, *cursor, &token_start, &token_end, &quoted, &quote_char);
+    replace_start = token_start;
+    if (quoted && token_start > 0 &&
+        (buffer[token_start - 1] == '"' || buffer[token_start - 1] == '\'')) {
+        replace_start = token_start - 1;
+    }
+
+    if (token_end - token_start >= sizeof(token)) {
+        return;
+    }
+
+    memcpy(token, buffer + token_start, token_end - token_start);
+    token[token_end - token_start] = '\0';
+
+    last_separator = SIZE_MAX;
+    for (index = 0; token[index] != '\0'; index++) {
+        if (token[index] == '\\' || token[index] == '/') {
+            last_separator = index;
+        }
+    }
+
+    if (last_separator == SIZE_MAX) {
+        strcpy(directory_part, "");
+        strncpy(prefix, token, sizeof(prefix) - 1);
+        prefix[sizeof(prefix) - 1] = '\0';
+        strcpy(search_path, "*");
+    } else {
+        size_t dir_length = last_separator + 1;
+        memcpy(directory_part, token, dir_length);
+        directory_part[dir_length] = '\0';
+        strncpy(prefix, token + dir_length, sizeof(prefix) - 1);
+        prefix[sizeof(prefix) - 1] = '\0';
+        _snprintf(search_path, sizeof(search_path), "%s*", directory_part);
+        search_path[sizeof(search_path) - 1] = '\0';
+    }
+
+    handle = FindFirstFileA(search_path, &entry);
+    if (handle == INVALID_HANDLE_VALUE) {
+        putchar('\a');
+        fflush(stdout);
+        return;
+    }
+
+    do {
+        bool is_dot = strcmp(entry.cFileName, ".") == 0 || strcmp(entry.cFileName, "..") == 0;
+        if (is_dot) {
+            continue;
+        }
+
+        if (!starts_with_ignore_case(entry.cFileName, prefix)) {
+            continue;
+        }
+
+        if (match_count >= MAX_MATCHES) {
+            break;
+        }
+
+        _snprintf(
+            matches[match_count],
+            sizeof(matches[match_count]),
+            "%s%s",
+            directory_part,
+            entry.cFileName
+        );
+        matches[match_count][sizeof(matches[match_count]) - 1] = '\0';
+        match_is_dir[match_count] =
+            (entry.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+        match_count++;
+    } while (FindNextFileA(handle, &entry));
+
+    FindClose(handle);
+
+    if (match_count == 0) {
+        putchar('\a');
+        fflush(stdout);
+        return;
+    }
+
+    if (match_count == 1) {
+        char replacement[MAX_PATH_ARG + 4];
+        const char *selected = matches[0];
+
+        if (quoted) {
+            _snprintf(replacement, sizeof(replacement), "%c%s", quote_char, selected);
+            if (!match_is_dir[0]) {
+                _snprintf(
+                    replacement,
+                    sizeof(replacement),
+                    "%c%s%c",
+                    quote_char,
+                    selected,
+                    quote_char
+                );
+            }
+        } else if (strchr(selected, ' ') != NULL) {
+            _snprintf(replacement, sizeof(replacement), "\"%s\"", selected);
+        } else {
+            _snprintf(replacement, sizeof(replacement), "%s", selected);
+        }
+
+        replacement[sizeof(replacement) - 1] = '\0';
+
+        if (!quoted && strchr(selected, ' ') != NULL && match_is_dir[0]) {
+            replacement[strlen(replacement) - 1] = '\0';
+        } else if (match_is_dir[0]) {
+            size_t replacement_length = strlen(replacement);
+            if (replacement_length + 1 < sizeof(replacement)) {
+                replacement[replacement_length] = '\\';
+                replacement[replacement_length + 1] = '\0';
+            }
+        }
+
+        if (replace_range_in_buffer(
+                buffer,
+                size,
+                length,
+                cursor,
+                replace_start,
+                token_end,
+                replacement)) {
+            redraw_input_line(prompt, buffer, *length, *cursor);
+        }
+        return;
+    }
+
+    longest_common_prefix(matches, match_count, common_prefix, sizeof(common_prefix));
+    if (strlen(common_prefix) > strlen(token)) {
+        char replacement[MAX_PATH_ARG + 4];
+
+        if (quoted) {
+            _snprintf(replacement, sizeof(replacement), "%c%s", quote_char, common_prefix);
+        } else if (strchr(common_prefix, ' ') != NULL) {
+            _snprintf(replacement, sizeof(replacement), "\"%s", common_prefix);
+        } else {
+            _snprintf(replacement, sizeof(replacement), "%s", common_prefix);
+        }
+        replacement[sizeof(replacement) - 1] = '\0';
+
+        if (replace_range_in_buffer(
+                buffer,
+                size,
+                length,
+                cursor,
+                replace_start,
+                token_end,
+                replacement)) {
+            redraw_input_line(prompt, buffer, *length, *cursor);
+        }
+        return;
+    }
+
+    print_completion_matches(
+        matches,
+        match_count,
+        match_is_dir,
+        prompt,
+        buffer,
+        *length,
+        *cursor
+    );
+}
+
 static int read_input_line(char *buffer, size_t size) {
     char prompt[MAX_PATH + 16];
     size_t length = 0;
@@ -223,6 +572,11 @@ static int read_input_line(char *buffer, size_t size) {
             buffer[length] = '\0';
             putchar('\n');
             return 1;
+        }
+
+        if (ch == '\t') {
+            handle_tab_completion(buffer, size, &length, &cursor, prompt);
+            continue;
         }
 
         if (ch == '\b') {
@@ -382,6 +736,7 @@ static void print_help(void) {
     puts("  touch <file>         Create an empty file if missing");
     puts("  clear                Clear the screen");
     puts("  Arrow keys           Edit input and browse history");
+    puts("  Tab                  Complete files and directories");
     puts("  Pipes and redirection use cmd.exe /C");
     puts("  Other commands run through cmd.exe /C");
 }
@@ -506,34 +861,47 @@ static int builtin_ls(char *args) {
         strcpy(path, ".");
     } else {
         char buffer[MAX_LINE];
-        char *tokens[3];
+        char *tokens[MAX_TOKENS];
         int token_count;
+        int index;
 
         strncpy(buffer, args, sizeof(buffer) - 1);
         buffer[sizeof(buffer) - 1] = '\0';
-        token_count = split_arguments(buffer, tokens, 3);
+        token_count = split_arguments(buffer, tokens, MAX_TOKENS);
         if (token_count < 0) {
             return 1;
         }
 
-        if (token_count == 0) {
-            strcpy(path, ".");
-        } else if (token_count == 1 && strcmp(tokens[0], "-a") == 0) {
-            show_all = true;
-            strcpy(path, ".");
-        } else if (token_count == 1 && strcmp(tokens[0], "-l") == 0) {
-            long_format = true;
-            strcpy(path, ".");
-        } else if (token_count == 2 && strcmp(tokens[0], "-a") == 0) {
-            show_all = true;
-            strncpy(path, tokens[1], sizeof(path) - 1);
-            path[sizeof(path) - 1] = '\0';
-        } else if (token_count == 2 && strcmp(tokens[0], "-l") == 0) {
-            long_format = true;
-            strncpy(path, tokens[1], sizeof(path) - 1);
-            path[sizeof(path) - 1] = '\0';
-        } else {
-            strncpy(path, tokens[0], sizeof(path) - 1);
+        strcpy(path, ".");
+        for (index = 0; index < token_count; index++) {
+            if (tokens[index][0] == '-' && tokens[index][1] != '\0' &&
+                strcmp(tokens[index], "--") != 0) {
+                int flag_index;
+                for (flag_index = 1; tokens[index][flag_index] != '\0'; flag_index++) {
+                    if (tokens[index][flag_index] == 'a') {
+                        show_all = true;
+                    } else if (tokens[index][flag_index] == 'l') {
+                        long_format = true;
+                    } else {
+                        fprintf(stderr, "ls: unsupported option '-%c'\n", tokens[index][flag_index]);
+                        return 1;
+                    }
+                }
+            } else if (strcmp(tokens[index], "--") == 0) {
+                index++;
+                break;
+            } else {
+                break;
+            }
+        }
+
+        if (index < token_count) {
+            if (index + 1 != token_count) {
+                fprintf(stderr, "ls: too many path operands\n");
+                return 1;
+            }
+
+            strncpy(path, tokens[index], sizeof(path) - 1);
             path[sizeof(path) - 1] = '\0';
         }
     }

@@ -133,12 +133,38 @@ This document records the major stages of the project from the initial version u
   - Verified quoted-path behavior for `touch`, `cat`, `cp`, `mv`, `mkdir`, `rmdir`, `cd`, and `pwd`
   - Arrow-key behavior was implemented for interactive console input, but not fully automatable in the current non-interactive test harness
 
+## Stage 8: v5 Milestone on Feature Branch
+
+- Commit:
+  - Pending at the time of writing this update step; commit created in the current v5 workflow
+- Branch:
+  - `feature/v2-pipes-redirection`
+- Main files updated:
+  - `myshell.c`
+  - `FEATURES.md`
+  - `DEVELOPMENT_LOG.md`
+  - `README.md`
+  - `VERSIONING_METHOD.md`
+  - `WORKFLOW.md`
+  - `myshell_v5.exe`
+- Relevant features added:
+  - Tab completion for files and directories in the interactive console
+  - Completion listing when multiple matching names are found
+  - Better `ls` option handling
+  - Support for combined flags such as `-la` and `-al`
+  - Support for separated flags such as `-l -a`
+  - Rejection of unsupported `ls` flags with a clear error
+- Relevant testing performed:
+  - Built cleanly as `myshell_v5.exe`
+  - Verified `ls`, `ls -l`, `ls -a`, `ls -la`, `ls -al`, `ls -l .`, `ls -a .`, and invalid flag handling
+  - Tab completion was implemented for interactive console input, but not fully automatable in the current non-interactive test harness
+
 ## Current State Summary
 
 - Main branch latest documented commit:
   - `0cf918c`
 - Feature branch latest commit:
-  - `223afbc`
+  - `2cb68d0`
 - Current feature branch:
   - `feature/v2-pipes-redirection`
 - Current versioned executables present:
@@ -146,10 +172,10 @@ This document records the major stages of the project from the initial version u
   - `myshell_v2.exe`
   - `myshell_v3.exe`
   - `myshell_v4.exe`
+  - `myshell_v5.exe`
 
 ## Features Still Not Implemented
 
-- Tab completion
 - Background jobs
 - Environment variable expansion like `$HOME`
 - Linux-style wildcard or glob expansion inside built-ins
