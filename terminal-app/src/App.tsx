@@ -1,20 +1,13 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+﻿import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { Terminal } from 'xterm';
 import { FitAddon } from '@xterm/addon-fit';
 
-const PROMPT = 'neon@myshell > ';
 const BASE_FONT_SIZE = 15;
-const BOOT_STEPS = [
-  'authenticating Electron runtime',
-  'binding renderer transport',
-  'warming terminal surface',
-  'linking myshell bridge'
-];
-const HELP_COMMANDS = ['help', 'pwd', 'ls -la', 'history', 'echo hello | findstr hello'];
+const BOOT_STEPS = ['authenticating runtime', 'binding transport', 'warming output log', 'linking myshell'];
 const THEME_OPTIONS = [
-  { id: 'soft', label: 'soft', intensity: 0.82 },
+  { id: 'soft', label: 'soft', intensity: 0.78 },
   { id: 'standard', label: 'standard', intensity: 1 },
-  { id: 'surge', label: 'surge', intensity: 1.22 }
+  { id: 'surge', label: 'surge', intensity: 1.18 }
 ] as const;
 const STORAGE_KEYS = {
   fontScale: 'myshell-terminal:font-scale',
@@ -60,22 +53,20 @@ export default function App() {
   const terminalHostRef = useRef<HTMLDivElement | null>(null);
   const terminalRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
-  const inputBufferRef = useRef('');
-  const historyRef = useRef<string[]>([]);
+  const commandHistoryRef = useRef<string[]>([]);
   const historyIndexRef = useRef<number | null>(null);
+  const inputBufferRef = useRef('');
   const promptVisibleRef = useRef(false);
-  const promptTimerRef = useRef<number | null>(null);
   const statusRef = useRef<AppStatus>('booting');
   const [status, setStatus] = useState<AppStatus>('booting');
   const [shellPath, setShellPath] = useState('shell-core/myshell_v6.exe');
-  const [sessionLabel, setSessionLabel] = useState('Neon Session');
-  const [recentCommands, setRecentCommands] = useState<string[]>([]);
   const [bootIndex, setBootIndex] = useState(0);
   const [bootVisible, setBootVisible] = useState(true);
   const [appReady, setAppReady] = useState(false);
   const [currentDirectory, setCurrentDirectory] = useState('workspace pending');
   const [fontScale, setFontScale] = useState(readStoredFontScale);
   const [themeMode, setThemeMode] = useState<ThemeMode>(readStoredThemeMode);
+  const [commandValue, setCommandValue] = useState('');
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEYS.fontScale, fontScale.toFixed(2));
@@ -88,32 +79,31 @@ export default function App() {
   useEffect(() => {
     const term = new Terminal({
       cursorBlink: true,
-      cursorStyle: 'bar',
       fontFamily: '"JetBrains Mono", "Cascadia Code", monospace',
       fontSize: BASE_FONT_SIZE * fontScale,
-      lineHeight: 1.3,
-      letterSpacing: 0.5,
+      lineHeight: 1.35,
+      letterSpacing: 0.4,
       theme: {
-        background: '#05070b',
-        foreground: '#d8f6ff',
-        cursor: '#71f7ff',
-        cursorAccent: '#05070b',
-        selectionBackground: 'rgba(113, 247, 255, 0.18)',
-        black: '#0a0d12',
-        red: '#ff537a',
-        green: '#6bffb3',
-        yellow: '#ffd166',
-        blue: '#69b4ff',
-        magenta: '#ff64d6',
-        cyan: '#71f7ff',
+        background: '#070b12',
+        foreground: '#d7ebff',
+        cursor: '#75a9ff',
+        cursorAccent: '#070b12',
+        selectionBackground: 'rgba(117, 169, 255, 0.18)',
+        black: '#0a0e16',
+        red: '#ff6b9a',
+        green: '#76f7c7',
+        yellow: '#ffd37d',
+        blue: '#77b2ff',
+        magenta: '#8b6dff',
+        cyan: '#79d4ff',
         white: '#f5fbff',
-        brightBlack: '#30414f',
-        brightRed: '#ff7f9d',
-        brightGreen: '#8cffc6',
-        brightYellow: '#ffe08a',
-        brightBlue: '#9cd2ff',
-        brightMagenta: '#ff98e6',
-        brightCyan: '#a0ffff',
+        brightBlack: '#344156',
+        brightRed: '#ff8ab0',
+        brightGreen: '#8dffe0',
+        brightYellow: '#ffe29f',
+        brightBlue: '#9dc5ff',
+        brightMagenta: '#ac97ff',
+        brightCyan: '#a7e8ff',
         brightWhite: '#ffffff'
       }
     });
@@ -137,15 +127,11 @@ export default function App() {
         }
         return current + 1;
       });
-    }, 420);
+    }, 260);
 
     const updateStatus = (nextStatus: AppStatus) => {
       statusRef.current = nextStatus;
       setStatus(nextStatus);
-    };
-
-    const updateRecentCommands = (command: string) => {
-      setRecentCommands((current) => [command, ...current.filter((item) => item !== command)].slice(0, 6));
     };
 
     const renderPrompt = () => {
@@ -156,125 +142,118 @@ export default function App() {
       promptVisibleRef.current = true;
       inputBufferRef.current = '';
       historyIndexRef.current = null;
-      terminalRef.current.write(`\r\n${PROMPT}`);
-    };
-
-    const schedulePrompt = () => {
-      if (promptTimerRef.current !== null) {
-        window.clearTimeout(promptTimerRef.current);
-      }
-
-      promptTimerRef.current = window.setTimeout(() => {
-        renderPrompt();
-      }, 110);
-    };
-
-    const echoBackspace = () => {
-      if (!terminalRef.current || inputBufferRef.current.length === 0) {
-        return;
-      }
-      inputBufferRef.current = inputBufferRef.current.slice(0, -1);
-      terminalRef.current.write('\b \b');
+      terminalRef.current.write('\r\n› ');
     };
 
     const replaceCurrentLine = (value: string) => {
-      if (!terminalRef.current) {
+      if (!terminalRef.current || !promptVisibleRef.current) {
         return;
       }
 
       const previousLength = inputBufferRef.current.length;
-      terminalRef.current.write('\b \b'.repeat(previousLength));
+      if (previousLength > 0) {
+        terminalRef.current.write('\b \b'.repeat(previousLength));
+      }
+
       inputBufferRef.current = value;
+      setCommandValue(value);
       terminalRef.current.write(value);
     };
 
-    const handleUpHistory = () => {
-      if (historyRef.current.length === 0) {
-        return;
-      }
-
-      if (historyIndexRef.current === null) {
-        historyIndexRef.current = historyRef.current.length - 1;
-      } else if (historyIndexRef.current > 0) {
-        historyIndexRef.current -= 1;
-      }
-
-      replaceCurrentLine(historyRef.current[historyIndexRef.current]);
-    };
-
-    const handleDownHistory = () => {
-      if (historyRef.current.length === 0 || historyIndexRef.current === null) {
-        return;
-      }
-
-      if (historyIndexRef.current < historyRef.current.length - 1) {
-        historyIndexRef.current += 1;
-        replaceCurrentLine(historyRef.current[historyIndexRef.current]);
-      } else {
-        historyIndexRef.current = null;
-        replaceCurrentLine('');
-      }
-    };
-
-    const writeCommand = async (command: string) => {
+    const submitTerminalCommand = async (rawCommand: string) => {
+      const command = rawCommand.trim();
       promptVisibleRef.current = false;
       terminalRef.current?.write('\r\n');
 
-      if (command.trim() !== '') {
-        historyRef.current.push(command);
-        updateRecentCommands(command);
+      if (!command) {
+        inputBufferRef.current = '';
+        setCommandValue('');
+        renderPrompt();
+        return;
       }
+
+      commandHistoryRef.current.push(command);
       historyIndexRef.current = null;
       inputBufferRef.current = '';
+      setCommandValue('');
 
       const response = await window.terminalApp.writeToShell(`${command}\n`);
       if (!response.ok) {
-        terminalRef.current?.write('shell bridge offline');
+        terminalRef.current?.write('[shell bridge offline]\r\n');
         updateStatus('offline');
-        schedulePrompt();
       }
     };
 
-    const disposable = term.onData(async (data) => {
+    const onResize = () => fitAddon.fit();
+    window.addEventListener('resize', onResize);
+
+    const removeDataInput = term.onData((data) => {
       if (statusRef.current === 'offline') {
         return;
       }
 
+      if (!promptVisibleRef.current) {
+        renderPrompt();
+      }
+
       if (data === '\r') {
-        await writeCommand(inputBufferRef.current);
+        void submitTerminalCommand(inputBufferRef.current);
         return;
       }
 
       if (data === '\u007F') {
-        echoBackspace();
+        if (inputBufferRef.current.length === 0) {
+          return;
+        }
+        inputBufferRef.current = inputBufferRef.current.slice(0, -1);
+        setCommandValue(inputBufferRef.current);
+        terminalRef.current?.write('\b \b');
         return;
       }
 
       if (data === '\u001b[A') {
-        handleUpHistory();
+        if (commandHistoryRef.current.length === 0) {
+          return;
+        }
+
+        if (historyIndexRef.current === null) {
+          historyIndexRef.current = commandHistoryRef.current.length - 1;
+        } else if (historyIndexRef.current > 0) {
+          historyIndexRef.current -= 1;
+        }
+
+        replaceCurrentLine(commandHistoryRef.current[historyIndexRef.current]);
         return;
       }
 
       if (data === '\u001b[B') {
-        handleDownHistory();
+        if (commandHistoryRef.current.length === 0 || historyIndexRef.current === null) {
+          return;
+        }
+
+        if (historyIndexRef.current < commandHistoryRef.current.length - 1) {
+          historyIndexRef.current += 1;
+          replaceCurrentLine(commandHistoryRef.current[historyIndexRef.current]);
+        } else {
+          historyIndexRef.current = null;
+          replaceCurrentLine('');
+        }
         return;
       }
 
       if (data === '\u0003') {
         replaceCurrentLine('');
         terminalRef.current?.write('^C');
-        schedulePrompt();
+        renderPrompt();
         return;
       }
 
       if (data >= ' ' && data !== '\u007f') {
         inputBufferRef.current += data;
+        setCommandValue(inputBufferRef.current);
         terminalRef.current?.write(data);
       }
     });
-
-    const onResize = () => fitAddon.fit();
-    window.addEventListener('resize', onResize);
 
     const removeData = window.terminalApp.onShellData((payload) => {
       if (!terminalRef.current) {
@@ -283,7 +262,7 @@ export default function App() {
 
       terminalRef.current.write(normalizeChunk(payload));
       updateStatus('online');
-      schedulePrompt();
+      renderPrompt();
     });
 
     const removeCwd = window.terminalApp.onShellCwd((payload) => {
@@ -304,33 +283,25 @@ export default function App() {
       terminalRef.current?.write(`\r\n[shell error: ${payload.message}]\r\n`);
     });
 
-    term.write('\r\n  MYSHELL CONCEPT A // MINIMAL NEON TERMINAL\r\n');
-    term.write('  boot sequence active...\r\n');
-    term.write('  renderer online\r\n');
-    term.write('  linking shell-core\r\n');
-
     window.terminalApp.startShell().then((result) => {
       const normalizedShellPath = result.shellPath.replace(/\\/g, '/');
       const normalizedCwd = normalizeWindowsPath(result.cwd);
       setShellPath(normalizedShellPath);
       setCurrentDirectory(normalizedCwd);
-      setSessionLabel(result.reused ? 'Reused Session' : 'Fresh Session');
-      window.setTimeout(() => setBootIndex(BOOT_STEPS.length - 1), 100);
-      window.setTimeout(() => setAppReady(true), 500);
-      window.setTimeout(() => setBootVisible(false), 1500);
-      schedulePrompt();
+      terminalRef.current?.write('\r\nmyshell output log ready\r\n');
+      renderPrompt();
+      window.setTimeout(() => setBootIndex(BOOT_STEPS.length - 1), 60);
+      window.setTimeout(() => setAppReady(true), 220);
+      window.setTimeout(() => setBootVisible(false), 760);
     });
 
     return () => {
-      disposable.dispose();
+      removeDataInput.dispose();
       removeData();
       removeCwd();
       removeExit();
       removeError();
       window.removeEventListener('resize', onResize);
-      if (promptTimerRef.current !== null) {
-        window.clearTimeout(promptTimerRef.current);
-      }
       if (bootStepTimer !== null) {
         window.clearInterval(bootStepTimer);
       }
@@ -348,6 +319,75 @@ export default function App() {
     fitAddonRef.current.fit();
   }, [fontScale]);
 
+  async function submitCommand() {
+    const command = commandValue.trim();
+    if (!command) {
+      return;
+    }
+
+    if (promptVisibleRef.current && inputBufferRef.current.length > 0) {
+      terminalRef.current?.write('\b \b'.repeat(inputBufferRef.current.length));
+    }
+
+    promptVisibleRef.current = false;
+    inputBufferRef.current = '';
+    terminalRef.current?.write(`\r\n› ${command}\r\n`);
+    commandHistoryRef.current.push(command);
+    historyIndexRef.current = null;
+    setCommandValue('');
+    terminalRef.current?.focus();
+
+    const response = await window.terminalApp.writeToShell(`${command}\n`);
+    if (!response.ok) {
+      terminalRef.current?.write('[shell bridge offline]\r\n');
+      setStatus('offline');
+    }
+  }
+
+  function handleCommandKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      void submitCommand();
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (commandHistoryRef.current.length === 0) {
+        return;
+      }
+
+      if (historyIndexRef.current === null) {
+        historyIndexRef.current = commandHistoryRef.current.length - 1;
+      } else if (historyIndexRef.current > 0) {
+        historyIndexRef.current -= 1;
+      }
+
+      const historyValue = commandHistoryRef.current[historyIndexRef.current];
+      inputBufferRef.current = historyValue;
+      setCommandValue(historyValue);
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (commandHistoryRef.current.length === 0 || historyIndexRef.current === null) {
+        return;
+      }
+
+      if (historyIndexRef.current < commandHistoryRef.current.length - 1) {
+        historyIndexRef.current += 1;
+        const historyValue = commandHistoryRef.current[historyIndexRef.current];
+        inputBufferRef.current = historyValue;
+        setCommandValue(historyValue);
+      } else {
+        historyIndexRef.current = null;
+        inputBufferRef.current = '';
+        setCommandValue('');
+      }
+    }
+  }
+
   const shellVersion = inferShellVersion(shellPath);
   const themeConfig = THEME_OPTIONS.find((option) => option.id === themeMode) ?? THEME_OPTIONS[1];
   const appStyle = {
@@ -356,202 +396,114 @@ export default function App() {
   } as CSSProperties;
 
   return (
-    <div className={`app-shell app-theme-${themeMode} ${appReady ? 'app-ready' : ''}`} style={appStyle}>
-      <div className="ambient-grid" />
+    <div className={`app-shell glass-shell app-theme-${themeMode} ${appReady ? 'app-ready' : ''}`} style={appStyle}>
+      <div className="ambient-orb ambient-orb-left" />
+      <div className="ambient-orb ambient-orb-right" />
+
       {bootVisible ? (
         <div className={`boot-overlay ${appReady ? 'boot-overlay-hide' : ''}`}>
-          <div className="boot-core">
-            <p className="boot-label">Concept A boot</p>
-            <h2>Minimal neon terminal</h2>
-            <p className="boot-copy">A focused desktop shell launcher with restrained cyberpunk energy.</p>
+          <div className="boot-core glass-panel">
+            <div className="boot-mark" />
+            <h2>myshell</h2>
             <div className="boot-progress-track">
               <div
                 className="boot-progress-fill"
                 style={{ width: `${((bootIndex + 1) / BOOT_STEPS.length) * 100}%` }}
               />
             </div>
-            <div className="boot-steps">
-              {BOOT_STEPS.map((step, index) => (
-                <div key={step} className={`boot-step ${index <= bootIndex ? 'active' : ''}`}>
-                  <span className="boot-step-index">0{index + 1}</span>
-                  <span>{step}</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       ) : null}
 
-      <header className="titlebar">
-        <div className="title-cluster">
-          <div className="brand-mark" />
+      <header className="titlebar glass-panel">
+        <div className="brand-cluster">
+          <div className={`status-dot status-dot-${status}`} />
           <div>
-            <p className="eyebrow">Concept A</p>
-            <h1>myshell neon terminal</h1>
+            <p className="eyebrow">myshell</p>
+            <h1>command deck</h1>
           </div>
         </div>
-        <div className="status-cluster">
-          <div className={`status-pill status-${status}`}>{status}</div>
-          <div className="status-pill muted">{shellVersion} shell bridge</div>
-          <button
-            className="window-button"
-            onClick={() => void window.terminalApp.minimizeWindow()}
-            aria-label="Minimize window"
-          >
-            _
-          </button>
-          <button
-            className="window-button"
-            onClick={() => void window.terminalApp.maximizeWindow()}
-            aria-label="Maximize window"
-          >
-            ?
-          </button>
-          <button
-            className="window-button danger"
-            onClick={() => void window.terminalApp.closeWindow()}
-            aria-label="Close window"
-          >
-            �
-          </button>
+        <div className="title-meta">{shellVersion}</div>
+        <div className="window-controls">
+          <button className="window-button" onClick={() => void window.terminalApp.minimizeWindow()} aria-label="Minimize window" type="button">_</button>
+          <button className="window-button" onClick={() => void window.terminalApp.maximizeWindow()} aria-label="Maximize window" type="button">?</button>
+          <button className="window-button danger" onClick={() => void window.terminalApp.closeWindow()} aria-label="Close window" type="button">×</button>
         </div>
       </header>
 
-      <main className="workspace">
-        <section className="console-stage">
-          <div className="terminal-frame">
-            <div className="terminal-overlay" />
-            <div className="terminal-header">
-              <div>
-                <p className="frame-label">Live shell runtime</p>
-                <h2>{sessionLabel}</h2>
-              </div>
-              <div className="shell-meta">
-                <span>{shellPath}</span>
-              </div>
-            </div>
-            <div ref={terminalHostRef} className="terminal-host" />
+      <main className="workspace glass-workspace">
+        <section className="output-shell glass-panel">
+          <div className="output-header">
+            <span className="output-label">output log</span>
+            <span className="output-meta">{currentDirectory}</span>
           </div>
+          <div
+            ref={terminalHostRef}
+            className="terminal-host glass-output"
+            onClick={() => terminalRef.current?.focus()}
+          />
         </section>
 
-        <aside className="support-panel">
-          <section className="support-block support-block-hero">
-            <p className="support-kicker">Session telemetry</p>
-            <h3>{sessionLabel}</h3>
-            <p className="support-copy">
-              Focused desktop host for {shellVersion} with a restrained support rail for operators.
-            </p>
-            <div className="support-pills">
-              <span>{status}</span>
-              <span>{shellVersion}</span>
-              <span>concept A</span>
+        <section className="command-palette-wrap">
+          <div className={`command-palette glass-panel status-${status}`}>
+            <div className="palette-head">
+              <span className="palette-label">command</span>
+              <span className="palette-status">{status}</span>
             </div>
-          </section>
-
-          <section className="support-block">
-            <div className="support-heading-row">
-              <p className="support-kicker">Runtime</p>
-              <span className={`mini-status mini-status-${status}`} />
-            </div>
-            <dl className="meta-list">
-              <div>
-                <dt>shell target</dt>
-                <dd>{shellPath}</dd>
-              </div>
-              <div>
-                <dt>current directory</dt>
-                <dd>{currentDirectory}</dd>
-              </div>
-              <div>
-                <dt>version badge</dt>
-                <dd>{shellVersion}</dd>
-              </div>
-            </dl>
-          </section>
-
-          <section className="support-block">
-            <p className="support-kicker">Quick hints</p>
-            <ul className="hint-list">
-              {HELP_COMMANDS.map((command) => (
-                <li key={command}>
-                  <code>{command}</code>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="support-block settings-block">
-            <p className="support-kicker">Surface tuning</p>
-            <div className="settings-group">
-              <span className="settings-label">Theme intensity</span>
-              <div className="settings-options">
-                {THEME_OPTIONS.map((option) => (
-                  <button
-                    key={option.id}
-                    className={`settings-chip ${themeMode === option.id ? 'selected' : ''}`}
-                    onClick={() => setThemeMode(option.id)}
-                    type="button"
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="settings-group">
-              <label className="settings-label" htmlFor="font-scale-slider">
-                Font scale <span>{Math.round(fontScale * 100)}%</span>
-              </label>
+            <div className="palette-input-row">
+              <span className="palette-prompt">›</span>
               <input
-                id="font-scale-slider"
-                className="settings-slider"
-                type="range"
-                min="85"
-                max="135"
-                step="5"
-                value={Math.round(fontScale * 100)}
-                onChange={(event) => setFontScale(Number(event.target.value) / 100)}
+                className="palette-input"
+                value={commandValue}
+                onChange={(event) => {
+                  inputBufferRef.current = event.target.value;
+                  setCommandValue(event.target.value);
+                }}
+                onKeyDown={handleCommandKeyDown}
+                placeholder="Type a command and press Enter"
+                autoFocus
               />
             </div>
-          </section>
-
-          <section className="support-block">
-            <p className="support-kicker">Recent commands</p>
-            <div className="history-list">
-              {recentCommands.length > 0 ? (
-                recentCommands.map((command) => (
-                  <div key={command} className="history-row">
-                    <span className="history-mark" />
-                    <code>{command}</code>
-                  </div>
-                ))
-              ) : (
-                <p className="empty-state">Commands you run in the terminal will appear here.</p>
-              )}
+            <div className="palette-foot">
+              <span>{currentDirectory}</span>
+              <span>{commandHistoryRef.current.length} history</span>
             </div>
-          </section>
-        </aside>
+          </div>
+        </section>
       </main>
 
-      <footer className="status-strip">
-        <div className="status-segment">
-          <span className="status-strip-label">runtime</span>
-          <strong>{status}</strong>
-        </div>
-        <div className="status-segment status-segment-wide">
-          <span className="status-strip-label">cwd</span>
+      <footer className="dock glass-panel">
+        <div className="dock-item dock-item-wide">
+          <span className="dock-label">cwd</span>
           <strong>{currentDirectory}</strong>
         </div>
-        <div className="status-segment">
-          <span className="status-strip-label">font</span>
-          <strong>{Math.round(fontScale * 100)}%</strong>
+        <div className="dock-item">
+          <span className="dock-label">theme</span>
+          <div className="settings-options compact">
+            {THEME_OPTIONS.map((option) => (
+              <button
+                key={option.id}
+                className={`settings-chip compact ${themeMode === option.id ? 'selected' : ''}`}
+                onClick={() => setThemeMode(option.id)}
+                type="button"
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="status-segment">
-          <span className="status-strip-label">intensity</span>
-          <strong>{themeMode}</strong>
-        </div>
-        <div className="status-segment">
-          <span className="status-strip-label">bridge</span>
-          <strong>{shellVersion}</strong>
+        <div className="dock-item font-dock">
+          <label className="dock-label" htmlFor="font-scale-slider">font {Math.round(fontScale * 100)}%</label>
+          <input
+            id="font-scale-slider"
+            className="settings-slider compact"
+            type="range"
+            min="85"
+            max="135"
+            step="5"
+            value={Math.round(fontScale * 100)}
+            onChange={(event) => setFontScale(Number(event.target.value) / 100)}
+          />
         </div>
       </footer>
     </div>
