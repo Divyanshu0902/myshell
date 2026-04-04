@@ -189,7 +189,7 @@ This document records the major stages of the project from the initial version u
 ## Stage 10: Repository Reorganization For Shell Core Separation
 
 - Commit:
-  - Pending at the time of writing this update step; commit created in the current reorganization workflow
+  - `26ac9ca` (`Reorganize repo into shell-core and app concept folders`)
 - Branch:
   - `feature/v2-pipes-redirection`
 - Main files updated:
