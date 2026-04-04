@@ -3,9 +3,21 @@ import { Terminal } from 'xterm';
 import { FitAddon } from '@xterm/addon-fit';
 
 const PROMPT = 'neon@myshell > ';
+const BOOT_STEPS = [
+  'authenticating Electron runtime',
+  'binding renderer transport',
+  'warming terminal surface',
+  'linking myshell bridge'
+];
+const HELP_COMMANDS = ['help', 'pwd', 'ls -la', 'history', 'echo hello | findstr hello'];
 
 function normalizeChunk(chunk: string) {
   return chunk.replace(/\r?\n/g, '\r\n');
+}
+
+function inferShellVersion(shellPath: string) {
+  const match = shellPath.match(/myshell_(v\d+)/i);
+  return match?.[1]?.toUpperCase() ?? 'V6';
 }
 
 export default function App() {
@@ -17,10 +29,13 @@ export default function App() {
   const promptVisibleRef = useRef(false);
   const promptTimerRef = useRef<number | null>(null);
   const statusRef = useRef<'booting' | 'online' | 'offline'>('booting');
-
   const [status, setStatus] = useState<'booting' | 'online' | 'offline'>('booting');
   const [shellPath, setShellPath] = useState('shell-core/myshell_v6.exe');
   const [sessionLabel, setSessionLabel] = useState('Neon Session');
+  const [recentCommands, setRecentCommands] = useState<string[]>([]);
+  const [bootIndex, setBootIndex] = useState(0);
+  const [bootVisible, setBootVisible] = useState(true);
+  const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
     const term = new Terminal({
@@ -62,9 +77,26 @@ export default function App() {
     term.focus();
     terminalRef.current = term;
 
+    let bootStepTimer: number | null = window.setInterval(() => {
+      setBootIndex((current) => {
+        if (current >= BOOT_STEPS.length - 1) {
+          if (bootStepTimer !== null) {
+            window.clearInterval(bootStepTimer);
+            bootStepTimer = null;
+          }
+          return current;
+        }
+        return current + 1;
+      });
+    }, 420);
+
     const updateStatus = (nextStatus: 'booting' | 'online' | 'offline') => {
       statusRef.current = nextStatus;
       setStatus(nextStatus);
+    };
+
+    const updateRecentCommands = (command: string) => {
+      setRecentCommands((current) => [command, ...current.filter((item) => item !== command)].slice(0, 6));
     };
 
     const renderPrompt = () => {
@@ -141,6 +173,7 @@ export default function App() {
 
       if (command.trim() !== '') {
         historyRef.current.push(command);
+        updateRecentCommands(command);
       }
       historyIndexRef.current = null;
       inputBufferRef.current = '';
@@ -226,6 +259,9 @@ export default function App() {
     window.terminalApp.startShell().then((result) => {
       setShellPath(result.shellPath.replace(/\\/g, '/'));
       setSessionLabel(result.reused ? 'Reused Session' : 'Fresh Session');
+      window.setTimeout(() => setBootIndex(BOOT_STEPS.length - 1), 100);
+      window.setTimeout(() => setAppReady(true), 500);
+      window.setTimeout(() => setBootVisible(false), 1500);
       schedulePrompt();
     });
 
@@ -238,13 +274,42 @@ export default function App() {
       if (promptTimerRef.current !== null) {
         window.clearTimeout(promptTimerRef.current);
       }
+      if (bootStepTimer !== null) {
+        window.clearInterval(bootStepTimer);
+      }
       term.dispose();
     };
   }, []);
 
+  const shellVersion = inferShellVersion(shellPath);
+
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${appReady ? 'app-ready' : ''}`}>
       <div className="ambient-grid" />
+      {bootVisible ? (
+        <div className={`boot-overlay ${appReady ? 'boot-overlay-hide' : ''}`}>
+          <div className="boot-core">
+            <p className="boot-label">Concept A boot</p>
+            <h2>Minimal neon terminal</h2>
+            <p className="boot-copy">A focused desktop shell launcher with restrained cyberpunk energy.</p>
+            <div className="boot-progress-track">
+              <div
+                className="boot-progress-fill"
+                style={{ width: `${((bootIndex + 1) / BOOT_STEPS.length) * 100}%` }}
+              />
+            </div>
+            <div className="boot-steps">
+              {BOOT_STEPS.map((step, index) => (
+                <div key={step} className={`boot-step ${index <= bootIndex ? 'active' : ''}`}>
+                  <span className="boot-step-index">0{index + 1}</span>
+                  <span>{step}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <header className="titlebar">
         <div className="title-cluster">
           <div className="brand-mark" />
@@ -255,7 +320,7 @@ export default function App() {
         </div>
         <div className="status-cluster">
           <div className={`status-pill status-${status}`}>{status}</div>
-          <div className="status-pill muted">v6 shell bridge</div>
+          <div className="status-pill muted">{shellVersion} shell bridge</div>
           <button
             className="window-button"
             onClick={() => void window.terminalApp.minimizeWindow()}
@@ -280,20 +345,85 @@ export default function App() {
         </div>
       </header>
 
-      <main className="console-stage">
-        <section className="terminal-frame">
-          <div className="terminal-overlay" />
-          <div className="terminal-header">
-            <div>
-              <p className="frame-label">Live shell runtime</p>
-              <h2>{sessionLabel}</h2>
+      <main className="workspace">
+        <section className="console-stage">
+          <div className="terminal-frame">
+            <div className="terminal-overlay" />
+            <div className="terminal-header">
+              <div>
+                <p className="frame-label">Live shell runtime</p>
+                <h2>{sessionLabel}</h2>
+              </div>
+              <div className="shell-meta">
+                <span>{shellPath}</span>
+              </div>
             </div>
-            <div className="shell-meta">
-              <span>{shellPath}</span>
-            </div>
+            <div ref={terminalHostRef} className="terminal-host" />
           </div>
-          <div ref={terminalHostRef} className="terminal-host" />
         </section>
+
+        <aside className="support-panel">
+          <section className="support-block support-block-hero">
+            <p className="support-kicker">Session telemetry</p>
+            <h3>{sessionLabel}</h3>
+            <p className="support-copy">
+              Focused desktop host for {shellVersion} with a restrained support rail for operators.
+            </p>
+            <div className="support-pills">
+              <span>{status}</span>
+              <span>{shellVersion}</span>
+              <span>concept A</span>
+            </div>
+          </section>
+
+          <section className="support-block">
+            <div className="support-heading-row">
+              <p className="support-kicker">Runtime</p>
+              <span className={`mini-status mini-status-${status}`} />
+            </div>
+            <dl className="meta-list">
+              <div>
+                <dt>shell target</dt>
+                <dd>{shellPath}</dd>
+              </div>
+              <div>
+                <dt>version badge</dt>
+                <dd>{shellVersion}</dd>
+              </div>
+              <div>
+                <dt>visual mode</dt>
+                <dd>minimal neon terminal</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section className="support-block">
+            <p className="support-kicker">Quick hints</p>
+            <ul className="hint-list">
+              {HELP_COMMANDS.map((command) => (
+                <li key={command}>
+                  <code>{command}</code>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="support-block">
+            <p className="support-kicker">Recent commands</p>
+            <div className="history-list">
+              {recentCommands.length > 0 ? (
+                recentCommands.map((command) => (
+                  <div key={command} className="history-row">
+                    <span className="history-mark" />
+                    <code>{command}</code>
+                  </div>
+                ))
+              ) : (
+                <p className="empty-state">Commands you run in the terminal will appear here.</p>
+              )}
+            </div>
+          </section>
+        </aside>
       </main>
     </div>
   );

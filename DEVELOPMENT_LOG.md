@@ -236,6 +236,29 @@ This document records the major stages of the project from the initial version u
   - rebuilt the renderer successfully with `npm run build`
   - verified the Electron app stayed running when launched through the new launcher with no stderr output
   - verified a live `myshell_v6.exe` child process was started by the desktop app during launch
+
+## Stage 12: Concept A Startup Sequence And Support Panel
+
+- Commit:
+  - Pending at the time of writing this update step; commit created in the current terminal-app workflow
+- Branch:
+  - `feature/v2-pipes-redirection`
+- Main files updated:
+  - `terminal-app/src/App.tsx`
+  - `terminal-app/src/styles.css`
+  - `terminal-app/MILESTONES.md`
+  - `terminal-app/README.md`
+  - `FEATURES.md`
+  - `DEVELOPMENT_LOG.md`
+- Relevant changes:
+  - added a cinematic boot overlay with staged startup progress
+  - reworked the renderer into a two-column Concept A layout with a right-side support panel
+  - surfaced runtime metadata, quick command hints, and recent command history outside the terminal pane
+  - preserved the main terminal surface as the primary workspace while adding the missing support context from Concept A
+- Relevant testing performed:
+  - rebuilt the renderer successfully with `npm run build`
+  - verified the Electron app stayed running after the milestone 5 UI changes
+  - verified a live `myshell_v6.exe` child process still launched correctly during startup
 ## Current State Summary
 
 - Main branch latest documented commit:
@@ -258,4 +281,5 @@ This document records the major stages of the project from the initial version u
 - Linux-style wildcard or glob expansion inside built-ins
 - Linux-style `${VAR}` expansion
 - Native built-in input streaming from redirected stdin
+
 

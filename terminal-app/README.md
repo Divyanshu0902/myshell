@@ -7,6 +7,10 @@ The shell engine and the terminal app should now be treated as two related but s
 - `shell-core/myshell.c` and versioned executables in `shell-core/` are the shell core
 - this `terminal-app` folder will contain the desktop application that hosts and displays the shell
 
+Implementation progress is tracked in:
+
+- `terminal-app/MILESTONES.md`
+
 ## Selected Product Direction
 
 The terminal app will be built according to:
@@ -169,3 +173,5 @@ Expected shell target:
 - the terminal UI includes a local prompt/input layer because the shell is being hosted over standard process pipes rather than a native TTY session
 - the Electron launcher clears any inherited `ELECTRON_RUN_AS_NODE` value before startup so the runtime uses the real Electron APIs
 - if you bypass the npm launcher and start Electron manually, clear `ELECTRON_RUN_AS_NODE` first or use the project launcher instead
+
+
