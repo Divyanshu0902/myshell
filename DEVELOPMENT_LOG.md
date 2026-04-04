@@ -285,6 +285,34 @@ This document records the major stages of the project from the initial version u
   - rebuilt the renderer successfully with `npm run build`
   - verified the Electron app stayed running after the milestone 6 changes
   - verified a live `myshell_v6.exe` child process still launched correctly during startup
+
+## Stage 14: True Shell Cwd Synchronization
+
+- Commit:
+  - Pending at the time of writing this update step; commit created in the current terminal-app workflow
+- Branch:
+  - `feature/v2-pipes-redirection`
+- Main files updated:
+  - `shell-core/myshell.c`
+  - `shell-core/myshell_v6.exe`
+  - `terminal-app/electron/main.cjs`
+  - `terminal-app/electron/preload.cjs`
+  - `terminal-app/src/App.tsx`
+  - `terminal-app/src/vite-env.d.ts`
+  - `terminal-app/MILESTONES.md`
+  - `terminal-app/README.md`
+  - `FEATURES.md`
+  - `DEVELOPMENT_LOG.md`
+- Relevant changes:
+  - added a machine-readable cwd control line from the shell so the app can receive exact working-directory updates
+  - filtered cwd control messages in the Electron main process and routed them to the renderer as a dedicated IPC event
+  - removed the renderer-side cwd guessing logic in favor of true shell-reported synchronization
+  - updated the terminal app UI and docs to reflect exact cwd synchronization
+- Relevant testing performed:
+  - rebuilt `shell-core/myshell_v6.exe`
+  - verified the shell emits cwd control lines during startup and after directory changes
+  - rebuilt the renderer successfully with `npm run build`
+  - verified the Electron app stayed running and still launched a live `myshell_v6.exe` child process
 ## Current State Summary
 
 - Main branch latest documented commit:
@@ -307,6 +335,7 @@ This document records the major stages of the project from the initial version u
 - Linux-style wildcard or glob expansion inside built-ins
 - Linux-style `${VAR}` expansion
 - Native built-in input streaming from redirected stdin
+
 
 
 

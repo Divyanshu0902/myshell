@@ -6,9 +6,11 @@ const fs = require('node:fs');
 const appRoot = path.resolve(__dirname, '..');
 const repoRoot = path.resolve(appRoot, '..');
 const rendererUrl = process.env.ELECTRON_RENDERER_URL;
+const SHELL_CWD_PREFIX = '__MYSHELL_CWD__=';
 
 let mainWindow = null;
 let shellProcess = null;
+let shellStdoutBuffer = '';
 
 function resolveShellPath() {
   const candidates = [
@@ -25,6 +27,39 @@ function broadcast(channel, payload) {
   }
 
   mainWindow.webContents.send(channel, payload);
+}
+
+function handleShellStdout(chunk) {
+  shellStdoutBuffer += chunk;
+  const lines = shellStdoutBuffer.split(/\r?\n/);
+  shellStdoutBuffer = lines.pop() ?? '';
+
+  const visibleLines = [];
+  for (const line of lines) {
+    if (line.startsWith(SHELL_CWD_PREFIX)) {
+      broadcast('shell:cwd', { cwd: line.slice(SHELL_CWD_PREFIX.length) });
+      continue;
+    }
+    visibleLines.push(line);
+  }
+
+  if (visibleLines.length > 0) {
+    broadcast('shell:data', `${visibleLines.join('\n')}\n`);
+  }
+}
+
+function flushShellStdoutBuffer() {
+  if (!shellStdoutBuffer) {
+    return;
+  }
+
+  if (shellStdoutBuffer.startsWith(SHELL_CWD_PREFIX)) {
+    broadcast('shell:cwd', { cwd: shellStdoutBuffer.slice(SHELL_CWD_PREFIX.length) });
+  } else {
+    broadcast('shell:data', shellStdoutBuffer);
+  }
+
+  shellStdoutBuffer = '';
 }
 
 function createWindow() {
@@ -68,6 +103,7 @@ function stopShell() {
     shellProcess.kill();
     shellProcess = null;
   }
+  shellStdoutBuffer = '';
 }
 
 function startShell() {
@@ -76,6 +112,7 @@ function startShell() {
   }
 
   const shellPath = resolveShellPath();
+  shellStdoutBuffer = '';
 
   shellProcess = spawn(shellPath, [], {
     cwd: repoRoot,
@@ -86,15 +123,17 @@ function startShell() {
   shellProcess.stdout.setEncoding('utf8');
   shellProcess.stderr.setEncoding('utf8');
 
-  shellProcess.stdout.on('data', (chunk) => broadcast('shell:data', chunk));
+  shellProcess.stdout.on('data', handleShellStdout);
   shellProcess.stderr.on('data', (chunk) => broadcast('shell:data', chunk));
 
   shellProcess.on('exit', (code, signal) => {
+    flushShellStdoutBuffer();
     broadcast('shell:exit', { code, signal });
     shellProcess = null;
   });
 
   shellProcess.on('error', (error) => {
+    flushShellStdoutBuffer();
     broadcast('shell:error', { message: error.message });
     shellProcess = null;
   });
@@ -150,11 +189,3 @@ app.on('window-all-closed', () => {
 app.on('before-quit', () => {
   stopShell();
 });
-
-
-
-
-
-
-
-

@@ -33,6 +33,10 @@ function inferShellVersion(shellPath: string) {
   return match?.[1]?.toUpperCase() ?? 'V6';
 }
 
+function normalizeWindowsPath(value: string) {
+  return value.replace(/\//g, '\\').replace(/\\+/g, '\\');
+}
+
 function readStoredFontScale() {
   if (typeof window === 'undefined') {
     return 1;
@@ -50,47 +54,6 @@ function readStoredThemeMode(): ThemeMode {
 
   const stored = window.localStorage.getItem(STORAGE_KEYS.themeMode);
   return THEME_OPTIONS.some((option) => option.id === stored) ? (stored as ThemeMode) : 'standard';
-}
-
-function normalizeWindowsPath(value: string) {
-  return value.replace(/\//g, '\\').replace(/\\+/g, '\\');
-}
-
-function resolveWindowsPath(basePath: string, targetPath: string) {
-  const normalizedBase = normalizeWindowsPath(basePath);
-  const normalizedTarget = normalizeWindowsPath(targetPath.trim().replace(/^"|"$/g, ''));
-
-  if (!normalizedTarget || normalizedTarget.includes('%') || normalizedTarget.startsWith('~')) {
-    return normalizedBase;
-  }
-
-  if (/^[A-Za-z]:\\/.test(normalizedTarget) || normalizedTarget.startsWith('\\\\')) {
-    return normalizedTarget;
-  }
-
-  const rootMatch = normalizedBase.match(/^[A-Za-z]:/);
-  const root = rootMatch?.[0] ?? 'C:';
-  const baseSegments = normalizedBase.replace(/^[A-Za-z]:\\?/, '').split('\\').filter(Boolean);
-  const targetSegments = normalizedTarget.split('\\').filter(Boolean);
-  const resolvedSegments = [...baseSegments];
-
-  for (const segment of targetSegments) {
-    if (segment === '.') {
-      continue;
-    }
-    if (segment === '..') {
-      resolvedSegments.pop();
-      continue;
-    }
-    resolvedSegments.push(segment);
-  }
-
-  return resolvedSegments.length > 0 ? `${root}\\${resolvedSegments.join('\\')}` : `${root}\\`;
-}
-
-function extractCdTarget(command: string) {
-  const match = command.trim().match(/^cd\s+("[^"]+"|\S+)\s*$/i);
-  return match ? match[1] : null;
 }
 
 export default function App() {
@@ -269,12 +232,6 @@ export default function App() {
         terminalRef.current?.write('shell bridge offline');
         updateStatus('offline');
         schedulePrompt();
-        return;
-      }
-
-      const cdTarget = extractCdTarget(command);
-      if (cdTarget) {
-        setCurrentDirectory((current) => resolveWindowsPath(current, cdTarget));
       }
     };
 
@@ -329,6 +286,10 @@ export default function App() {
       schedulePrompt();
     });
 
+    const removeCwd = window.terminalApp.onShellCwd((payload) => {
+      setCurrentDirectory(normalizeWindowsPath(payload.cwd));
+    });
+
     const removeExit = window.terminalApp.onShellExit((payload) => {
       updateStatus('offline');
       promptVisibleRef.current = false;
@@ -363,6 +324,7 @@ export default function App() {
     return () => {
       disposable.dispose();
       removeData();
+      removeCwd();
       removeExit();
       removeError();
       window.removeEventListener('resize', onResize);
@@ -497,7 +459,7 @@ export default function App() {
                 <dd>{shellPath}</dd>
               </div>
               <div>
-                <dt>cwd mirror</dt>
+                <dt>current directory</dt>
                 <dd>{currentDirectory}</dd>
               </div>
               <div>

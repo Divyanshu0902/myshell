@@ -12,6 +12,11 @@ contextBridge.exposeInMainWorld('terminalApp', {
     ipcRenderer.on('shell:data', listener);
     return () => ipcRenderer.removeListener('shell:data', listener);
   },
+  onShellCwd: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on('shell:cwd', listener);
+    return () => ipcRenderer.removeListener('shell:cwd', listener);
+  },
   onShellExit: (callback) => {
     const listener = (_event, payload) => callback(payload);
     ipcRenderer.on('shell:exit', listener);
@@ -23,6 +28,3 @@ contextBridge.exposeInMainWorld('terminalApp', {
     return () => ipcRenderer.removeListener('shell:error', listener);
   }
 });
-
-
-

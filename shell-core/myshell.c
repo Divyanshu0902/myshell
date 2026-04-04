@@ -22,6 +22,7 @@
 #define MAX_MATCHES 256
 #define MAX_PIPE_SEGMENTS 8
 #define SHELL_VERSION "v6"
+#define SHELL_CWD_PREFIX "__MYSHELL_CWD__="
 
 typedef int (*builtin_handler_t)(char *args);
 
@@ -269,6 +270,14 @@ static void strip_matching_quotes(char *text) {
     }
 }
 
+static void emit_current_directory_control_line(void) {
+    char cwd[MAX_PATH];
+
+    if (_getcwd(cwd, sizeof(cwd)) != NULL) {
+        printf(SHELL_CWD_PREFIX "%s\n", cwd);
+        fflush(stdout);
+    }
+}
 static void format_prompt(char *buffer, size_t size) {
     char cwd[MAX_PATH];
 
@@ -1845,6 +1854,7 @@ static bool handle_command(char *line) {
     }
 
     execute_pipeline(full_line);
+    emit_current_directory_control_line();
     return true;
 }
 
@@ -1853,6 +1863,7 @@ int main(void) {
 
     printf("Mini Windows Shell %s\n", SHELL_VERSION);
     puts("Linux-like built-ins are enabled. Type 'help' for commands.");
+    emit_current_directory_control_line();
 
     while (true) {
         if (!read_input_line(line, sizeof(line))) {
@@ -1867,3 +1878,7 @@ int main(void) {
 
     return 0;
 }
+
+
+
+

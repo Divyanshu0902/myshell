@@ -10,17 +10,18 @@ This file translates that vision into milestone status, current completion, and 
 - Active concept:
   - Concept A: Minimal Neon Terminal
 - Overall completion:
-  - roughly 92-95%
+  - roughly 94-96%
 - Current state:
   - core app scaffold is working
   - Electron startup is fixed and verified
   - shell bridge is running end to end
   - startup sequence and support rail are implemented
   - settings and bottom status strip are implemented
+  - true shell-reported current-directory synchronization is implemented
   - the first complete Concept A pass is now in place
 - Main remaining work:
-  - deeper current-directory synchronization if shell state diverges from the UI mirror
   - optional additional motion and refinement passes
+  - packaging and distribution work if desired
   - future expansion items beyond the first Concept A milestone set
 
 ## Milestone Status
@@ -108,7 +109,7 @@ This file translates that vision into milestone status, current completion, and 
 - recent command history outside the terminal surface
 - settings for theme intensity and font scale
 - bottom status strip
-- current working directory mirror surfaced in the UI
+- true shell-reported current working directory surfaced in the UI
 - dark, sharp, neon-lit visual baseline
 - current session label
 - shell bridge status visibility
@@ -116,16 +117,15 @@ This file translates that vision into milestone status, current completion, and 
 
 ## Remaining Against Concept A
 
-- tighter true shell-current-directory synchronization beyond the current UI mirror
 - optional motion and visual refinement beyond the first complete pass
+- packaging and desktop distribution work if desired
 - future expansion items such as tabs, split panes, and richer session tracking
 
 ## Recommended Next Tasks
 
-1. Decide whether to keep the current best-effort working-directory mirror or invest in deeper shell-state synchronization.
-2. Run an end-to-end manual usage pass inside the desktop app and note any shell-hosting friction.
-3. Package or distribute the app if you want the next milestone to move from development build to installable desktop delivery.
-4. Use future milestones for expansion items, not the core Concept A baseline, because that baseline is now in place.
+1. Run an end-to-end manual usage pass inside the desktop app and note any shell-hosting friction.
+2. Package or distribute the app if you want the next milestone to move from development build to installable desktop delivery.
+3. Use future milestones for expansion items, not the core Concept A baseline, because that baseline is now in place.
 
 ## Update Rule
 

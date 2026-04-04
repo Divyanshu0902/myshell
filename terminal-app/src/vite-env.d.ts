@@ -13,6 +13,7 @@ interface TerminalAppApi {
   maximizeWindow: () => Promise<{ isMaximized: boolean }>;
   closeWindow: () => Promise<void>;
   onShellData: (callback: (payload: string) => void) => () => void;
+  onShellCwd: (callback: (payload: { cwd: string }) => void) => () => void;
   onShellExit: (callback: (payload: ShellExitPayload) => void) => () => void;
   onShellError: (callback: (payload: { message: string }) => void) => () => void;
 }
@@ -22,4 +23,3 @@ declare global {
     terminalApp: TerminalAppApi;
   }
 }
-
