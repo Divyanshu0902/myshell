@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Terminal } from 'xterm';
 import { FitAddon } from '@xterm/addon-fit';
 
 const PROMPT = 'neon@myshell > ';
+const BASE_FONT_SIZE = 15;
 const BOOT_STEPS = [
   'authenticating Electron runtime',
   'binding renderer transport',
@@ -10,6 +11,18 @@ const BOOT_STEPS = [
   'linking myshell bridge'
 ];
 const HELP_COMMANDS = ['help', 'pwd', 'ls -la', 'history', 'echo hello | findstr hello'];
+const THEME_OPTIONS = [
+  { id: 'soft', label: 'soft', intensity: 0.82 },
+  { id: 'standard', label: 'standard', intensity: 1 },
+  { id: 'surge', label: 'surge', intensity: 1.22 }
+] as const;
+const STORAGE_KEYS = {
+  fontScale: 'myshell-terminal:font-scale',
+  themeMode: 'myshell-terminal:theme-mode'
+} as const;
+
+type AppStatus = 'booting' | 'online' | 'offline';
+type ThemeMode = (typeof THEME_OPTIONS)[number]['id'];
 
 function normalizeChunk(chunk: string) {
   return chunk.replace(/\r?\n/g, '\r\n');
@@ -20,29 +33,101 @@ function inferShellVersion(shellPath: string) {
   return match?.[1]?.toUpperCase() ?? 'V6';
 }
 
+function readStoredFontScale() {
+  if (typeof window === 'undefined') {
+    return 1;
+  }
+
+  const stored = window.localStorage.getItem(STORAGE_KEYS.fontScale);
+  const parsed = stored ? Number(stored) : NaN;
+  return Number.isFinite(parsed) && parsed >= 0.85 && parsed <= 1.35 ? parsed : 1;
+}
+
+function readStoredThemeMode(): ThemeMode {
+  if (typeof window === 'undefined') {
+    return 'standard';
+  }
+
+  const stored = window.localStorage.getItem(STORAGE_KEYS.themeMode);
+  return THEME_OPTIONS.some((option) => option.id === stored) ? (stored as ThemeMode) : 'standard';
+}
+
+function normalizeWindowsPath(value: string) {
+  return value.replace(/\//g, '\\').replace(/\\+/g, '\\');
+}
+
+function resolveWindowsPath(basePath: string, targetPath: string) {
+  const normalizedBase = normalizeWindowsPath(basePath);
+  const normalizedTarget = normalizeWindowsPath(targetPath.trim().replace(/^"|"$/g, ''));
+
+  if (!normalizedTarget || normalizedTarget.includes('%') || normalizedTarget.startsWith('~')) {
+    return normalizedBase;
+  }
+
+  if (/^[A-Za-z]:\\/.test(normalizedTarget) || normalizedTarget.startsWith('\\\\')) {
+    return normalizedTarget;
+  }
+
+  const rootMatch = normalizedBase.match(/^[A-Za-z]:/);
+  const root = rootMatch?.[0] ?? 'C:';
+  const baseSegments = normalizedBase.replace(/^[A-Za-z]:\\?/, '').split('\\').filter(Boolean);
+  const targetSegments = normalizedTarget.split('\\').filter(Boolean);
+  const resolvedSegments = [...baseSegments];
+
+  for (const segment of targetSegments) {
+    if (segment === '.') {
+      continue;
+    }
+    if (segment === '..') {
+      resolvedSegments.pop();
+      continue;
+    }
+    resolvedSegments.push(segment);
+  }
+
+  return resolvedSegments.length > 0 ? `${root}\\${resolvedSegments.join('\\')}` : `${root}\\`;
+}
+
+function extractCdTarget(command: string) {
+  const match = command.trim().match(/^cd\s+("[^"]+"|\S+)\s*$/i);
+  return match ? match[1] : null;
+}
+
 export default function App() {
   const terminalHostRef = useRef<HTMLDivElement | null>(null);
   const terminalRef = useRef<Terminal | null>(null);
+  const fitAddonRef = useRef<FitAddon | null>(null);
   const inputBufferRef = useRef('');
   const historyRef = useRef<string[]>([]);
   const historyIndexRef = useRef<number | null>(null);
   const promptVisibleRef = useRef(false);
   const promptTimerRef = useRef<number | null>(null);
-  const statusRef = useRef<'booting' | 'online' | 'offline'>('booting');
-  const [status, setStatus] = useState<'booting' | 'online' | 'offline'>('booting');
+  const statusRef = useRef<AppStatus>('booting');
+  const [status, setStatus] = useState<AppStatus>('booting');
   const [shellPath, setShellPath] = useState('shell-core/myshell_v6.exe');
   const [sessionLabel, setSessionLabel] = useState('Neon Session');
   const [recentCommands, setRecentCommands] = useState<string[]>([]);
   const [bootIndex, setBootIndex] = useState(0);
   const [bootVisible, setBootVisible] = useState(true);
   const [appReady, setAppReady] = useState(false);
+  const [currentDirectory, setCurrentDirectory] = useState('workspace pending');
+  const [fontScale, setFontScale] = useState(readStoredFontScale);
+  const [themeMode, setThemeMode] = useState<ThemeMode>(readStoredThemeMode);
+
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEYS.fontScale, fontScale.toFixed(2));
+  }, [fontScale]);
+
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEYS.themeMode, themeMode);
+  }, [themeMode]);
 
   useEffect(() => {
     const term = new Terminal({
       cursorBlink: true,
       cursorStyle: 'bar',
       fontFamily: '"JetBrains Mono", "Cascadia Code", monospace',
-      fontSize: 15,
+      fontSize: BASE_FONT_SIZE * fontScale,
       lineHeight: 1.3,
       letterSpacing: 0.5,
       theme: {
@@ -71,6 +156,7 @@ export default function App() {
     });
 
     const fitAddon = new FitAddon();
+    fitAddonRef.current = fitAddon;
     term.loadAddon(fitAddon);
     term.open(terminalHostRef.current as HTMLDivElement);
     fitAddon.fit();
@@ -90,7 +176,7 @@ export default function App() {
       });
     }, 420);
 
-    const updateStatus = (nextStatus: 'booting' | 'online' | 'offline') => {
+    const updateStatus = (nextStatus: AppStatus) => {
       statusRef.current = nextStatus;
       setStatus(nextStatus);
     };
@@ -183,6 +269,12 @@ export default function App() {
         terminalRef.current?.write('shell bridge offline');
         updateStatus('offline');
         schedulePrompt();
+        return;
+      }
+
+      const cdTarget = extractCdTarget(command);
+      if (cdTarget) {
+        setCurrentDirectory((current) => resolveWindowsPath(current, cdTarget));
       }
     };
 
@@ -257,7 +349,10 @@ export default function App() {
     term.write('  linking shell-core\r\n');
 
     window.terminalApp.startShell().then((result) => {
-      setShellPath(result.shellPath.replace(/\\/g, '/'));
+      const normalizedShellPath = result.shellPath.replace(/\\/g, '/');
+      const normalizedCwd = normalizeWindowsPath(result.cwd);
+      setShellPath(normalizedShellPath);
+      setCurrentDirectory(normalizedCwd);
       setSessionLabel(result.reused ? 'Reused Session' : 'Fresh Session');
       window.setTimeout(() => setBootIndex(BOOT_STEPS.length - 1), 100);
       window.setTimeout(() => setAppReady(true), 500);
@@ -277,14 +372,29 @@ export default function App() {
       if (bootStepTimer !== null) {
         window.clearInterval(bootStepTimer);
       }
+      fitAddonRef.current = null;
       term.dispose();
     };
   }, []);
 
+  useEffect(() => {
+    if (!terminalRef.current || !fitAddonRef.current) {
+      return;
+    }
+
+    terminalRef.current.options.fontSize = BASE_FONT_SIZE * fontScale;
+    fitAddonRef.current.fit();
+  }, [fontScale]);
+
   const shellVersion = inferShellVersion(shellPath);
+  const themeConfig = THEME_OPTIONS.find((option) => option.id === themeMode) ?? THEME_OPTIONS[1];
+  const appStyle = {
+    '--theme-intensity': themeConfig.intensity.toString(),
+    '--font-scale': fontScale.toFixed(2)
+  } as CSSProperties;
 
   return (
-    <div className={`app-shell ${appReady ? 'app-ready' : ''}`}>
+    <div className={`app-shell app-theme-${themeMode} ${appReady ? 'app-ready' : ''}`} style={appStyle}>
       <div className="ambient-grid" />
       {bootVisible ? (
         <div className={`boot-overlay ${appReady ? 'boot-overlay-hide' : ''}`}>
@@ -387,12 +497,12 @@ export default function App() {
                 <dd>{shellPath}</dd>
               </div>
               <div>
-                <dt>version badge</dt>
-                <dd>{shellVersion}</dd>
+                <dt>cwd mirror</dt>
+                <dd>{currentDirectory}</dd>
               </div>
               <div>
-                <dt>visual mode</dt>
-                <dd>minimal neon terminal</dd>
+                <dt>version badge</dt>
+                <dd>{shellVersion}</dd>
               </div>
             </dl>
           </section>
@@ -406,6 +516,40 @@ export default function App() {
                 </li>
               ))}
             </ul>
+          </section>
+
+          <section className="support-block settings-block">
+            <p className="support-kicker">Surface tuning</p>
+            <div className="settings-group">
+              <span className="settings-label">Theme intensity</span>
+              <div className="settings-options">
+                {THEME_OPTIONS.map((option) => (
+                  <button
+                    key={option.id}
+                    className={`settings-chip ${themeMode === option.id ? 'selected' : ''}`}
+                    onClick={() => setThemeMode(option.id)}
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="settings-group">
+              <label className="settings-label" htmlFor="font-scale-slider">
+                Font scale <span>{Math.round(fontScale * 100)}%</span>
+              </label>
+              <input
+                id="font-scale-slider"
+                className="settings-slider"
+                type="range"
+                min="85"
+                max="135"
+                step="5"
+                value={Math.round(fontScale * 100)}
+                onChange={(event) => setFontScale(Number(event.target.value) / 100)}
+              />
+            </div>
           </section>
 
           <section className="support-block">
@@ -425,6 +569,29 @@ export default function App() {
           </section>
         </aside>
       </main>
+
+      <footer className="status-strip">
+        <div className="status-segment">
+          <span className="status-strip-label">runtime</span>
+          <strong>{status}</strong>
+        </div>
+        <div className="status-segment status-segment-wide">
+          <span className="status-strip-label">cwd</span>
+          <strong>{currentDirectory}</strong>
+        </div>
+        <div className="status-segment">
+          <span className="status-strip-label">font</span>
+          <strong>{Math.round(fontScale * 100)}%</strong>
+        </div>
+        <div className="status-segment">
+          <span className="status-strip-label">intensity</span>
+          <strong>{themeMode}</strong>
+        </div>
+        <div className="status-segment">
+          <span className="status-strip-label">bridge</span>
+          <strong>{shellVersion}</strong>
+        </div>
+      </footer>
     </div>
   );
 }

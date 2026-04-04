@@ -72,7 +72,7 @@ function stopShell() {
 
 function startShell() {
   if (shellProcess) {
-    return { ok: true, shellPath: resolveShellPath(), reused: true };
+    return { ok: true, shellPath: resolveShellPath(), cwd: repoRoot, reused: true };
   }
 
   const shellPath = resolveShellPath();
@@ -99,7 +99,7 @@ function startShell() {
     shellProcess = null;
   });
 
-  return { ok: true, shellPath, reused: false };
+  return { ok: true, shellPath, cwd: repoRoot, reused: false };
 }
 
 ipcMain.handle('shell:start', () => startShell());
@@ -150,6 +150,7 @@ app.on('window-all-closed', () => {
 app.on('before-quit', () => {
   stopShell();
 });
+
 
 
 

@@ -6,7 +6,7 @@ interface ShellExitPayload {
 }
 
 interface TerminalAppApi {
-  startShell: () => Promise<{ ok: boolean; shellPath: string; reused: boolean }>;
+  startShell: () => Promise<{ ok: boolean; shellPath: string; cwd: string; reused: boolean }>;
   writeToShell: (data: string) => Promise<{ ok: boolean }>;
   stopShell: () => Promise<{ ok: boolean }>;
   minimizeWindow: () => Promise<void>;
@@ -22,3 +22,4 @@ declare global {
     terminalApp: TerminalAppApi;
   }
 }
+

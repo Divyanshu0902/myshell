@@ -10,18 +10,18 @@ This file translates that vision into milestone status, current completion, and 
 - Active concept:
   - Concept A: Minimal Neon Terminal
 - Overall completion:
-  - roughly 78-82%
+  - roughly 92-95%
 - Current state:
   - core app scaffold is working
   - Electron startup is fixed and verified
   - shell bridge is running end to end
-  - startup sequence and support rail are now implemented
-  - core visual direction is established
+  - startup sequence and support rail are implemented
+  - settings and bottom status strip are implemented
+  - the first complete Concept A pass is now in place
 - Main remaining work:
-  - bottom status strip
-  - settings for theme intensity and font scale
-  - current working directory surfaced in support UI
-  - final polish and motion refinement
+  - deeper current-directory synchronization if shell state diverges from the UI mirror
+  - optional additional motion and refinement passes
+  - future expansion items beyond the first Concept A milestone set
 
 ## Milestone Status
 
@@ -81,19 +81,19 @@ This file translates that vision into milestone status, current completion, and 
   - quick hints
   - recent command view
 - Notes:
-  - milestone 5 is now implemented in the app UI
+  - milestone 5 is implemented in the app UI
 
 ## 6. Settings And Polish
 
 - Status:
-  - in progress
+  - done
 - Scope:
   - theme intensity setting
   - font scale setting
   - bottom status strip
   - refined motion and layout polish
 - Notes:
-  - this milestone should finish the first Concept A pass
+  - the first full Concept A milestone pass is complete
 
 ## Completed Against Concept A
 
@@ -106,6 +106,9 @@ This file translates that vision into milestone status, current completion, and 
 - shell version and runtime metadata in the UI
 - quick command hints
 - recent command history outside the terminal surface
+- settings for theme intensity and font scale
+- bottom status strip
+- current working directory mirror surfaced in the UI
 - dark, sharp, neon-lit visual baseline
 - current session label
 - shell bridge status visibility
@@ -113,18 +116,16 @@ This file translates that vision into milestone status, current completion, and 
 
 ## Remaining Against Concept A
 
-- bottom status strip
-- settings for theme intensity and font scaling
-- current working directory surfaced in side or status UI if available
-- deeper motion polish and interaction refinement
+- tighter true shell-current-directory synchronization beyond the current UI mirror
+- optional motion and visual refinement beyond the first complete pass
+- future expansion items such as tabs, split panes, and richer session tracking
 
 ## Recommended Next Tasks
 
-1. Add the bottom status strip with runtime status, shell path/version, and current directory placeholder or detected path.
-2. Add lightweight settings for theme intensity and terminal font scale with local persistence.
-3. Surface current working directory in the support rail or status strip.
-4. Tighten motion timing, hover behavior, and reveal polish now that the major layout is in place.
-5. Rebuild, verify launch, and update docs after the settings-and-polish milestone lands.
+1. Decide whether to keep the current best-effort working-directory mirror or invest in deeper shell-state synchronization.
+2. Run an end-to-end manual usage pass inside the desktop app and note any shell-hosting friction.
+3. Package or distribute the app if you want the next milestone to move from development build to installable desktop delivery.
+4. Use future milestones for expansion items, not the core Concept A baseline, because that baseline is now in place.
 
 ## Update Rule
 
