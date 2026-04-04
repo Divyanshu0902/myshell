@@ -7,6 +7,8 @@ const appRoot = path.resolve(__dirname, '..');
 const repoRoot = path.resolve(appRoot, '..');
 const rendererUrl = process.env.ELECTRON_RENDERER_URL;
 const SHELL_CWD_PREFIX = '__MYSHELL_CWD__=';
+const SHELL_PROMPT_ANSI = '\x1b[38;2;119;178;255mbolBhai\x1b[0m>> ';
+const SHELL_PROMPT_PLAIN = 'bolBhai>> ';
 
 let mainWindow = null;
 let shellProcess = null;
@@ -29,6 +31,21 @@ function broadcast(channel, payload) {
   mainWindow.webContents.send(channel, payload);
 }
 
+function stripShellPrompt(text) {
+  let sanitized = text;
+
+  while (sanitized.startsWith(SHELL_PROMPT_ANSI) || sanitized.startsWith(SHELL_PROMPT_PLAIN)) {
+    if (sanitized.startsWith(SHELL_PROMPT_ANSI)) {
+      sanitized = sanitized.slice(SHELL_PROMPT_ANSI.length);
+      continue;
+    }
+
+    sanitized = sanitized.slice(SHELL_PROMPT_PLAIN.length);
+  }
+
+  return sanitized;
+}
+
 function handleShellStdout(chunk) {
   shellStdoutBuffer += chunk;
   const lines = shellStdoutBuffer.split(/\r?\n/);
@@ -37,10 +54,18 @@ function handleShellStdout(chunk) {
   const visibleLines = [];
   for (const line of lines) {
     if (line.startsWith(SHELL_CWD_PREFIX)) {
+      if (visibleLines.length > 0) {
+        broadcast('shell:data', `${visibleLines.join('\n')}\n`);
+        visibleLines.length = 0;
+      }
       broadcast('shell:cwd', { cwd: line.slice(SHELL_CWD_PREFIX.length) });
       continue;
     }
-    visibleLines.push(line);
+
+    const sanitizedLine = stripShellPrompt(line);
+    if (sanitizedLine.length > 0) {
+      visibleLines.push(sanitizedLine);
+    }
   }
 
   if (visibleLines.length > 0) {
@@ -56,7 +81,10 @@ function flushShellStdoutBuffer() {
   if (shellStdoutBuffer.startsWith(SHELL_CWD_PREFIX)) {
     broadcast('shell:cwd', { cwd: shellStdoutBuffer.slice(SHELL_CWD_PREFIX.length) });
   } else {
-    broadcast('shell:data', shellStdoutBuffer);
+    const sanitizedBuffer = stripShellPrompt(shellStdoutBuffer);
+    if (sanitizedBuffer.length > 0) {
+      broadcast('shell:data', sanitizedBuffer);
+    }
   }
 
   shellStdoutBuffer = '';
@@ -64,11 +92,13 @@ function flushShellStdoutBuffer() {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1480,
-    height: 940,
-    minWidth: 1120,
-    minHeight: 720,
+    width: 1240,
+    height: 780,
+    minWidth: 920,
+    minHeight: 620,
     frame: false,
+    thickFrame: true,
+    resizable: true,
     titleBarStyle: 'hidden',
     backgroundColor: '#05070b',
     show: false,

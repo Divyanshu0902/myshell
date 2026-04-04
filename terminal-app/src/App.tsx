@@ -3,7 +3,14 @@ import { Terminal } from 'xterm';
 import { FitAddon } from '@xterm/addon-fit';
 
 const BASE_FONT_SIZE = 15;
-const BOOT_STEPS = ['authenticating runtime', 'binding transport', 'warming output log', 'linking myshell'];
+const BOOT_STEPS = ['authenticating runtime', 'binding transport', 'warming output log', 'linking apnaShell'];
+const PROMPT_LABEL = '\x1b[38;2;119;178;255mbolBhai\x1b[0m>> ';
+const OUTPUT_LABEL = '\x1b[38;2;255;92;92msunBhai\x1b[0m>';
+const OUTPUT_PREFIX = `${OUTPUT_LABEL}> `;
+const OUTPUT_INDENT = ' '.repeat('sunBhai> '.length);
+const WELCOME_MESSAGE = 'Welcome to apnaShell. Thanks for using it';
+const WELCOME_AUTHOR = ' - Divyanshu';
+const OUTPUT_CONTENT_COLUMN = 'sunBhai> '.length + 1;
 const THEME_OPTIONS = [
   { id: 'soft', label: 'soft', intensity: 0.78 },
   { id: 'standard', label: 'standard', intensity: 1 },
@@ -49,6 +56,15 @@ function readStoredThemeMode(): ThemeMode {
   return THEME_OPTIONS.some((option) => option.id === stored) ? (stored as ThemeMode) : 'standard';
 }
 
+function centerText(text: string, columns: number) {
+  const padding = Math.max(0, Math.floor((columns - text.length) / 2));
+  return `${' '.repeat(padding)}${text}`;
+}
+
+function formatOutputChunk(chunk: string) {
+  return normalizeChunk(chunk).replace(/\r\n/g, `\r\n\x1b[${OUTPUT_CONTENT_COLUMN}G`);
+}
+
 export default function App() {
   const terminalHostRef = useRef<HTMLDivElement | null>(null);
   const terminalRef = useRef<Terminal | null>(null);
@@ -56,7 +72,9 @@ export default function App() {
   const commandHistoryRef = useRef<string[]>([]);
   const historyIndexRef = useRef<number | null>(null);
   const inputBufferRef = useRef('');
+  const outputBlockOpenRef = useRef(false);
   const promptVisibleRef = useRef(false);
+  const promptTimerRef = useRef<number | null>(null);
   const statusRef = useRef<AppStatus>('booting');
   const [status, setStatus] = useState<AppStatus>('booting');
   const [shellPath, setShellPath] = useState('shell-core/myshell_v6.exe');
@@ -85,7 +103,7 @@ export default function App() {
       letterSpacing: 0.4,
       theme: {
         background: '#070b12',
-        foreground: '#d7ebff',
+        foreground: '#ffd37d',
         cursor: '#75a9ff',
         cursorAccent: '#070b12',
         selectionBackground: 'rgba(117, 169, 255, 0.18)',
@@ -134,6 +152,26 @@ export default function App() {
       setStatus(nextStatus);
     };
 
+    const schedulePrompt = () => {
+      if (promptTimerRef.current !== null) {
+        window.clearTimeout(promptTimerRef.current);
+      }
+
+      promptTimerRef.current = window.setTimeout(() => {
+        promptTimerRef.current = null;
+        renderPrompt();
+      }, 24);
+    };
+
+    const beginOutputBlock = () => {
+      if (!terminalRef.current || outputBlockOpenRef.current) {
+        return;
+      }
+
+      outputBlockOpenRef.current = true;
+      terminalRef.current.write(`\r\n${OUTPUT_PREFIX}`);
+    };
+
     const renderPrompt = () => {
       if (!terminalRef.current || promptVisibleRef.current || statusRef.current === 'offline') {
         return;
@@ -142,7 +180,7 @@ export default function App() {
       promptVisibleRef.current = true;
       inputBufferRef.current = '';
       historyIndexRef.current = null;
-      terminalRef.current.write('\r\n› ');
+      terminalRef.current.write(`\r\n${PROMPT_LABEL}`);
     };
 
     const replaceCurrentLine = (value: string) => {
@@ -176,6 +214,7 @@ export default function App() {
       historyIndexRef.current = null;
       inputBufferRef.current = '';
       setCommandValue('');
+      outputBlockOpenRef.current = false;
 
       const response = await window.terminalApp.writeToShell(`${command}\n`);
       if (!response.ok) {
@@ -260,18 +299,25 @@ export default function App() {
         return;
       }
 
-      terminalRef.current.write(normalizeChunk(payload));
+      beginOutputBlock();
+      terminalRef.current.write(formatOutputChunk(payload));
       updateStatus('online');
-      renderPrompt();
+      if (promptTimerRef.current !== null) {
+        schedulePrompt();
+      }
     });
 
     const removeCwd = window.terminalApp.onShellCwd((payload) => {
       setCurrentDirectory(normalizeWindowsPath(payload.cwd));
+      updateStatus('online');
+      outputBlockOpenRef.current = false;
+      schedulePrompt();
     });
 
     const removeExit = window.terminalApp.onShellExit((payload) => {
       updateStatus('offline');
       promptVisibleRef.current = false;
+      outputBlockOpenRef.current = false;
       terminalRef.current?.write(
         `\r\n[session terminated: code=${payload.code ?? 'null'}, signal=${payload.signal ?? 'null'}]\r\n`
       );
@@ -280,16 +326,22 @@ export default function App() {
     const removeError = window.terminalApp.onShellError((payload) => {
       updateStatus('offline');
       promptVisibleRef.current = false;
+      outputBlockOpenRef.current = false;
       terminalRef.current?.write(`\r\n[shell error: ${payload.message}]\r\n`);
     });
 
     window.terminalApp.startShell().then((result) => {
       const normalizedShellPath = result.shellPath.replace(/\\/g, '/');
       const normalizedCwd = normalizeWindowsPath(result.cwd);
+      const totalWelcome = `${WELCOME_MESSAGE}${WELCOME_AUTHOR}`;
+      const welcomePadding = ' '.repeat(
+        Math.max(0, Math.floor(((terminalRef.current?.cols ?? 80) - totalWelcome.length) / 2))
+      );
       setShellPath(normalizedShellPath);
       setCurrentDirectory(normalizedCwd);
-      terminalRef.current?.write('\r\nmyshell output log ready\r\n');
-      renderPrompt();
+      terminalRef.current?.write(
+        `\r\n${welcomePadding}\x1b[38;2;255;120;214m${WELCOME_MESSAGE}\x1b[0m\x1b[38;2;116;244;201m${WELCOME_AUTHOR}\x1b[0m\r\n`
+      );
       window.setTimeout(() => setBootIndex(BOOT_STEPS.length - 1), 60);
       window.setTimeout(() => setAppReady(true), 220);
       window.setTimeout(() => setBootVisible(false), 760);
@@ -302,6 +354,9 @@ export default function App() {
       removeExit();
       removeError();
       window.removeEventListener('resize', onResize);
+      if (promptTimerRef.current !== null) {
+        window.clearTimeout(promptTimerRef.current);
+      }
       if (bootStepTimer !== null) {
         window.clearInterval(bootStepTimer);
       }
@@ -331,7 +386,7 @@ export default function App() {
 
     promptVisibleRef.current = false;
     inputBufferRef.current = '';
-    terminalRef.current?.write(`\r\n› ${command}\r\n`);
+    outputBlockOpenRef.current = false;
     commandHistoryRef.current.push(command);
     historyIndexRef.current = null;
     setCommandValue('');
@@ -404,7 +459,7 @@ export default function App() {
         <div className={`boot-overlay ${appReady ? 'boot-overlay-hide' : ''}`}>
           <div className="boot-core glass-panel">
             <div className="boot-mark" />
-            <h2>myshell</h2>
+            <h2>apnaShell</h2>
             <div className="boot-progress-track">
               <div
                 className="boot-progress-fill"
@@ -417,10 +472,14 @@ export default function App() {
 
       <header className="titlebar glass-panel">
         <div className="brand-cluster">
-          <div className={`status-dot status-dot-${status}`} />
           <div>
-            <p className="eyebrow">myshell</p>
-            <h1>command deck</h1>
+            <div className="brand-head">
+              <span className="brand-light brand-light-orange" />
+              <span className="brand-light brand-light-white" />
+              <span className="brand-light brand-light-green" />
+              <p className="eyebrow eyebrow-brand">apnaShell</p>
+            </div>
+            <h1>runtime console</h1>
           </div>
         </div>
         <div className="title-meta">{shellVersion}</div>
@@ -434,7 +493,10 @@ export default function App() {
       <main className="workspace glass-workspace">
         <section className="output-shell glass-panel">
           <div className="output-header">
-            <span className="output-label">output log</span>
+            <div className="cwd-badge glass-panel">
+              <span className="cwd-caption">Working Directory :</span>
+              <strong>{currentDirectory}</strong>
+            </div>
             <span className="output-meta">{currentDirectory}</span>
           </div>
           <div

@@ -118,6 +118,25 @@ input {
   font-weight: 500;
 }
 
+.boot-core h2 {
+  font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-style: italic;
+  letter-spacing: 0.14em;
+  color: #8dc5ff;
+}
+
+.titlebar h1 {
+  font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: 1.05rem;
+  font-style: italic;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  background: linear-gradient(90deg, #8fd2ff 0%, #d7ebff 55%, #b8a8ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 .boot-progress-track {
   width: 100%;
   height: 2px;
@@ -151,6 +170,35 @@ input {
   gap: 10px;
 }
 
+.brand-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.brand-light {
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  display: inline-block;
+  box-shadow: none;
+}
+
+.brand-light-orange {
+  color: #ff5f56;
+  background: #ff5f56;
+}
+
+.brand-light-white {
+  color: #f7f9fc;
+  background: #f7f9fc;
+}
+
+.brand-light-green {
+  color: #35d07f;
+  background: #35d07f;
+}
+
 .eyebrow,
 .output-label,
 .palette-label,
@@ -166,8 +214,46 @@ input {
   color: var(--muted);
 }
 
+.eyebrow-brand {
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #eaf3ff;
+}
+
 .title-meta {
   justify-self: center;
+}
+
+.cwd-badge {
+  min-width: 320px;
+  max-width: 560px;
+  padding: 9px 12px;
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(118, 244, 138, 0.3);
+  background: linear-gradient(180deg, rgba(118, 244, 138, 0.08), rgba(12, 18, 26, 0.72));
+}
+
+.output-header .cwd-badge {
+  min-width: 0;
+  width: min(62%, 620px);
+}
+
+.cwd-caption {
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(173, 255, 197, 0.72);
+}
+
+.cwd-badge strong {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #f3fff6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .window-controls {
@@ -425,6 +511,16 @@ input {
   .titlebar {
     grid-template-columns: 1fr;
     justify-items: start;
+  }
+
+  .brand-cluster {
+    width: 100%;
+  }
+
+  .cwd-badge {
+    min-width: 0;
+    width: 100%;
+    max-width: none;
   }
 
   .title-meta,

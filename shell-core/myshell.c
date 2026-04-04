@@ -278,14 +278,16 @@ static void emit_current_directory_control_line(void) {
         fflush(stdout);
     }
 }
-static void format_prompt(char *buffer, size_t size) {
-    char cwd[MAX_PATH];
 
-    if (_getcwd(cwd, sizeof(cwd)) != NULL) {
-        _snprintf(buffer, size, "myshell:%s$ ", cwd);
-    } else {
-        _snprintf(buffer, size, "myshell$ ");
-    }
+#define PROMPT_COLOR "\x1b[38;2;119;178;255m"
+#define COLOR_RESET "\x1b[0m"
+
+static void format_prompt(char *buffer, size_t size) {
+    _snprintf(
+        buffer,
+        size,
+        PROMPT_COLOR "bolBhai" COLOR_RESET ">> "
+    );
     buffer[size - 1] = '\0';
 }
 
@@ -1415,7 +1417,9 @@ static int builtin_clear(void) {
     DWORD size;
 
     if (console == INVALID_HANDLE_VALUE || !GetConsoleScreenBufferInfo(console, &info)) {
-        return 1;
+        fputs("\x1b[2J\x1b[H", stdout);
+        fflush(stdout);
+        return 0;
     }
 
     size = (DWORD)(info.dwSize.X * info.dwSize.Y);
@@ -1850,6 +1854,7 @@ static bool handle_command(char *line) {
 
     if (_stricmp(command, "help") == 0) {
         print_help();
+        emit_current_directory_control_line();
         return true;
     }
 
@@ -1861,8 +1866,6 @@ static bool handle_command(char *line) {
 int main(void) {
     char line[MAX_LINE];
 
-    printf("Mini Windows Shell %s\n", SHELL_VERSION);
-    puts("Linux-like built-ins are enabled. Type 'help' for commands.");
     emit_current_directory_control_line();
 
     while (true) {
