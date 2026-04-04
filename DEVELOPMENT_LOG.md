@@ -186,21 +186,45 @@ This document records the major stages of the project from the initial version u
   - Verified pipelines such as `ls | findstr README` and `echo hello world | findstr hello`
   - Found and fixed a child-process stdio handle inheritance bug during testing
 
+## Stage 10: Repository Reorganization For Shell Core Separation
+
+- Commit:
+  - Pending at the time of writing this update step; commit created in the current reorganization workflow
+- Branch:
+  - `feature/v2-pipes-redirection`
+- Main files updated:
+  - moved `myshell.c` to `shell-core/myshell.c`
+  - moved all shell executables into `shell-core/`
+  - updated `README.md`
+  - updated `DEVELOPMENT_LOG.md`
+  - updated `VERSIONING_METHOD.md`
+  - updated `terminal-app/README.md`
+  - added and tracked `concepts/` docs
+- Relevant changes:
+  - introduced `shell-core/` as the dedicated home for the shell engine
+  - kept root-level docs at the repository root
+  - preserved `terminal-app/` and `concepts/` as sibling project areas
+  - cleaned the repository layout ahead of desktop app development
+- Relevant testing performed:
+  - rebuilt the shell from `shell-core/myshell.c`
+  - verified the versioned executable still runs from its new location
+  - confirmed documentation and project structure were updated to match the move
+
 ## Current State Summary
 
 - Main branch latest documented commit:
   - `0cf918c`
 - Feature branch latest commit:
-  - `6901e1d`
+  - `507de5c`
 - Current feature branch:
   - `feature/v2-pipes-redirection`
 - Current versioned executables present:
-  - `myshell.exe`
-  - `myshell_v2.exe`
-  - `myshell_v3.exe`
-  - `myshell_v4.exe`
-  - `myshell_v5.exe`
-  - `myshell_v6.exe`
+  - `shell-core/myshell.exe`
+  - `shell-core/myshell_v2.exe`
+  - `shell-core/myshell_v3.exe`
+  - `shell-core/myshell_v4.exe`
+  - `shell-core/myshell_v5.exe`
+  - `shell-core/myshell_v6.exe`
 
 ## Features Still Not Implemented
 

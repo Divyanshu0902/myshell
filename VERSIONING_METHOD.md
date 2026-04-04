@@ -4,7 +4,7 @@ This project will use Git-based versioning instead of keeping multiple copied so
 
 ## Core Rule
 
-- Maintain one active source file path for development, for example `myshell.c`
+- Maintain one active source file path for development, for example `shell-core/myshell.c`
 - Use Git commits, branches, and tags to represent project history and released versions
 - Do not create separate source-code copies for each version as the primary versioning method
 
@@ -23,7 +23,7 @@ This project will use Git-based versioning instead of keeping multiple copied so
   - Feature branches
   - Optional Git tags such as `v1`, `v2`, `v3`, `v4`
 - Built executable history:
-  - Versioned executables such as `myshell_v2.exe`, `myshell_v3.exe`, `myshell_v4.exe`
+  - Versioned executables such as `shell-core/myshell_v2.exe`, `shell-core/myshell_v3.exe`, `shell-core/myshell_v4.exe`
 - Documentation history:
   - Shared evolving docs such as `README.md`, `FEATURES.md`, and `DEVELOPMENT_LOG.md`
   - Optional version-specific docs can be added later if needed
@@ -37,7 +37,7 @@ This project will use Git-based versioning instead of keeping multiple copied so
 
 For each new version:
 
-- update the single active codebase
+- update the single active codebase in `shell-core/`
 - build the next versioned executable
 - record the changes in project documentation
 - commit the changes in Git

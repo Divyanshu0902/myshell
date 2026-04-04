@@ -6,6 +6,12 @@ This project is meant as a small learning-oriented shell implementation. It prov
 
 Builds are versioned as separate executables such as `myshell_v2.exe`, `myshell_v3.exe`, and so on as new milestones are implemented.
 
+The repository is now organized into dedicated areas:
+
+- `shell-core/` for the shell engine and shell executables
+- `terminal-app/` for the future desktop app
+- `concepts/` for terminal app concept docs
+
 ## Current Features
 
 - Interactive shell prompt
@@ -47,14 +53,17 @@ Builds are versioned as separate executables such as `myshell_v2.exe`, `myshell_
 - Linux-style `${VAR}` expansion
 - Native built-in input streaming from redirected stdin
 
-## Project Files
+## Project Structure
 
-- `myshell.c` - main source code for the shell
-- `myshell_v2.exe` - versioned executable for the v2 milestone
-- `myshell_v3.exe` - versioned executable for the current v3 milestone
-- `myshell_v4.exe` - versioned executable for the current v4 milestone
-- `myshell_v5.exe` - versioned executable for the current v5 milestone
-- `myshell_v6.exe` - versioned executable for the current v6 milestone
+- `shell-core/myshell.c` - main source code for the shell
+- `shell-core/myshell.exe` - early shell executable
+- `shell-core/myshell_v2.exe` - versioned executable for the v2 milestone
+- `shell-core/myshell_v3.exe` - versioned executable for the v3 milestone
+- `shell-core/myshell_v4.exe` - versioned executable for the v4 milestone
+- `shell-core/myshell_v5.exe` - versioned executable for the v5 milestone
+- `shell-core/myshell_v6.exe` - versioned executable for the current v6 milestone
+- `terminal-app/` - future dedicated desktop terminal app
+- `concepts/` - concept docs for the terminal app directions
 - `FEATURES.md` - quick feature status document
 - `DEVELOPMENT_LOG.md` - version-by-version project change log
 - `VERSIONING_METHOD.md` - project versioning approach
@@ -70,13 +79,13 @@ Builds are versioned as separate executables such as `myshell_v2.exe`, `myshell_
 If you have `gcc` installed:
 
 ```powershell
-gcc -Wall -Wextra -std=c11 myshell.c -o myshell_v6.exe
+gcc -Wall -Wextra -std=c11 shell-core/myshell.c -o shell-core/myshell_v6.exe
 ```
 
 ## Run
 
 ```powershell
-.\myshell_v6.exe
+.\shell-core\myshell_v6.exe
 ```
 
 ## Example Session
@@ -90,12 +99,9 @@ myshell:D:\Projects\myShell$ history
    2  history
 
 myshell:D:\Projects\myShell$ ls
-myshell.c
-myshell_v2.exe
-myshell_v3.exe
-myshell_v4.exe
-myshell_v5.exe
-myshell_v6.exe
+shell-core/
+terminal-app/
+concepts/
 README.md
 FEATURES.md
 
