@@ -526,6 +526,27 @@ This document records the major stages of the project from the initial version u
   - verified diagnostics are clean for updated renderer and style files
   - rebuilt the renderer successfully with `npm run build`
 
+## Stage 24: Hacker Advanced Modules (Phase 6)
+
+- Commit:
+  - Pending at the time of writing this update step; local workspace phase-6 execution from hacker theme roadmap
+- Branch:
+  - `main`
+- Main files updated:
+  - `terminal-app/src/App.tsx`
+  - `terminal-app/src/styles.css`
+  - `FEATURES.md`
+  - `DEVELOPMENT_LOG.md`
+  - `concepts/HACKER_THEME_EXECUTION_PHASES.md`
+- Relevant changes:
+  - added a Hacker-only alert ribbon for online, syncing, and offline runtime states
+  - added optional Hacker diagnostics modules drawer with waveform, hex readout, and signal integrity widgets
+  - added persisted Modules toggle in the Hacker control strip and kept behavior disabled outside Hacker mode
+  - kept all new visuals scoped to Hacker theme classes so Soft and Standard remain unchanged
+- Relevant testing performed:
+  - verified diagnostics are clean for updated renderer and style files
+  - rebuilt the renderer successfully with `npm run build`
+
 ## Current State Summary
 
 - Active branch:

@@ -63,3 +63,4 @@
 - Hacker profile now has reinforced framed panels, stronger neon-green hover states, and tighter terminal/chrome visual cohesion
 - Hacker profile includes grid/scanline/matrix-inspired atmosphere layers and HUD-style runtime telemetry chips
 - Hacker profile now supports Stealth, Breach, and Forensic sub-profiles with persisted focus mode to hide decorative UI layers
+- Hacker profile now includes optional advanced diagnostics modules and a runtime alert ribbon that remain Hacker-only
