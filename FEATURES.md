@@ -63,3 +63,7 @@
 - Hacker profile now has reinforced framed panels, stronger neon-green hover states, and tighter terminal/chrome visual cohesion
 - Hacker profile includes grid/scanline/matrix-inspired atmosphere layers and HUD-style runtime telemetry chips
 - Hacker profile now supports Stealth, Breach, and Forensic sub-profiles with persisted focus mode to hide decorative UI layers
+- Hacker hardening pass started with reduced-effect overlays, reduced-motion support, and high-severity-only security ribbon display
+- Hacker hardening now includes short-height responsive compaction and lower paint-cost terminal rendering for long-session readability
+- Hacker hardening now includes adaptive terminal readability tuning by font scale and long-session visual throttling for dense output
+- Hacker hardening phase is now complete with finalized compact, normal, and zoom readability behavior across terminal chrome

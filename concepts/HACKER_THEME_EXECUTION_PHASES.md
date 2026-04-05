@@ -92,7 +92,7 @@ Estimated effort: high.
 Deliverable:
 Production-safe Hacker visuals ready for installer release.
 
-## Suggested Rollout Order
+- Completed: Phase 7. Hardening and performance polish
 
 - Implement Phase 1 and Phase 2 together.
 - Release and validate with live command sessions.
@@ -107,4 +107,5 @@ Production-safe Hacker visuals ready for installer release.
 - Completed: Phase 3
 - Completed: Phase 4
 - Completed: Phase 5
-- Next recommended: Phase 6
+- Completed: Phase 6
+- Completed: Phase 7

@@ -3,7 +3,12 @@ import { Terminal } from 'xterm';
 import { FitAddon } from '@xterm/addon-fit';
 
 const BASE_FONT_SIZE = 15;
-const BOOT_STEPS = ['authenticating runtime', 'binding transport', 'warming output log', 'linking apnaShell'];
+const BOOT_STEPS = [
+  'handshake :: secure channel',
+  'decrypt :: session bus',
+  'mount :: audit stream',
+  'ready :: apnaShell online'
+];
 const WELCOME_PREFIX = 'Welcome to apnaShell. With love from - ';
 const WELCOME_NAME = 'Divyanshu !';
 const WELCOME_SUFFIX = '';
@@ -240,6 +245,27 @@ type ThemePreset = {
 };
 type HackerProfile = (typeof HACKER_PROFILE_ORDER)[number];
 
+function getTerminalReadabilityProfile(scale: number) {
+  if (scale <= 0.95) {
+    return {
+      lineHeight: 1.42,
+      letterSpacing: 0.46
+    };
+  }
+
+  if (scale >= 1.2) {
+    return {
+      lineHeight: 1.3,
+      letterSpacing: 0.34
+    };
+  }
+
+  return {
+    lineHeight: 1.35,
+    letterSpacing: 0.4
+  };
+}
+
 const HACKER_PROFILE_PRESETS: Record<
   HackerProfile,
   {
@@ -395,6 +421,7 @@ export default function App() {
   const [hackerFocusMode, setHackerFocusMode] = useState(readStoredHackerFocusMode);
   const [hackerModulesOpen, setHackerModulesOpen] = useState(readStoredHackerModulesOpen);
   const [commandCount, setCommandCount] = useState(0);
+  const terminalReadability = getTerminalReadabilityProfile(fontScale);
   const baseThemeMode = THEME_VISUAL_MAP[themeMode];
   const baseTheme = THEME_PRESETS[baseThemeMode];
   const standardLegacyOverrides =
@@ -531,8 +558,8 @@ export default function App() {
       cursorBlink: true,
       fontFamily: DEFAULT_TERMINAL_FONT,
       fontSize: BASE_FONT_SIZE * fontScale,
-      lineHeight: 1.35,
-      letterSpacing: 0.4,
+      lineHeight: terminalReadability.lineHeight,
+      letterSpacing: terminalReadability.letterSpacing,
       theme: THEME_PRESETS[themeMode].terminal
     });
 
@@ -806,8 +833,10 @@ export default function App() {
     }
 
     terminalRef.current.options.fontSize = BASE_FONT_SIZE * fontScale;
+    terminalRef.current.options.lineHeight = terminalReadability.lineHeight;
+    terminalRef.current.options.letterSpacing = terminalReadability.letterSpacing;
     fitAddonRef.current.fit();
-  }, [fontScale]);
+  }, [fontScale, terminalReadability]);
 
   useEffect(() => {
     if (!terminalRef.current) {
@@ -842,6 +871,8 @@ export default function App() {
   const telemetryPackets = status === 'online' ? `${88 + (commandCount % 21)} pk/s` : '--';
   const telemetryIntegrity = status === 'offline' ? 'fault' : status === 'booting' ? 'sync' : 'green';
   const isHackerTheme = themeMode === 'hacker';
+  const isLongSession = commandCount >= 120;
+  const fontScaleClass = fontScale <= 0.95 ? 'font-scale-compact' : fontScale >= 1.2 ? 'font-scale-zoom' : 'font-scale-normal';
   const hackerSignalStrength = status === 'online' ? 78 + (commandCount % 20) : status === 'booting' ? 52 : 12;
   const hackerWaveSamples = Array.from({ length: 18 }, (_, idx) => {
     const amplitude = Math.sin((commandCount + idx + 1) * 0.65);
@@ -890,7 +921,7 @@ export default function App() {
 
   return (
     <div
-      className={`app-shell glass-shell app-theme-${themeMode} ${isHackerTheme ? `app-hacker-profile-${hackerProfile}` : ''} ${isHackerTheme && hackerFocusMode ? 'hacker-focus-mode' : ''} ${isHackerTheme && hackerModulesOpen ? 'hacker-modules-open' : ''} runtime-status-${status} ${appReady ? 'app-ready' : ''}`}
+      className={`app-shell glass-shell app-theme-${themeMode} ${fontScaleClass} ${isHackerTheme ? `app-hacker-profile-${hackerProfile}` : ''} ${isHackerTheme && hackerFocusMode ? 'hacker-focus-mode' : ''} ${isHackerTheme && hackerModulesOpen ? 'hacker-modules-open' : ''} ${isLongSession ? 'session-long' : ''} runtime-status-${status} ${appReady ? 'app-ready' : ''}`}
       style={appStyle}
     >
       {isHackerTheme && hackerFocusMode ? null : <div className="ambient-orb ambient-orb-left" />}
@@ -996,7 +1027,9 @@ export default function App() {
               </div>
             </div>
           </div>
-          {isHackerTheme ? <div className={`hacker-alert-ribbon hacker-alert-${status}`}>{hackerAlertLabel}</div> : null}
+          {isHackerTheme && status === 'offline' ? (
+            <div className={`hacker-alert-ribbon hacker-alert-${status}`}>{hackerAlertLabel}</div>
+          ) : null}
           {isHackerTheme && !hackerFocusMode ? (
             <div className="ops-strip">
               <div className="ops-chips">
