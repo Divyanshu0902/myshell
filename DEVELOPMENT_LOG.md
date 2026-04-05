@@ -446,6 +446,86 @@ This document records the major stages of the project from the initial version u
   - rebuilt the renderer successfully with `npm run build`
   - verified TypeScript and stylesheet diagnostics remain clean after the theming refactor
 
+## Stage 20: Hacker Theme Foundation (Phase 1)
+
+- Commit:
+  - Pending at the time of writing this update step; local workspace phase-1 execution from hacker theme roadmap
+- Branch:
+  - `main`
+- Main files updated:
+  - `terminal-app/src/App.tsx`
+  - `terminal-app/src/styles.css`
+  - `FEATURES.md`
+  - `DEVELOPMENT_LOG.md`
+- Relevant changes:
+  - renamed the third theme key to `hacker` while preserving backwards compatibility for stored `hackerTerminal` values
+  - updated the third theme display label to `Hacker`
+  - introduced theme-specific ANSI styling for prompt/output labels and welcome-banner accents
+  - added theme-driven title gradient and caption tokens for cleaner visual identity separation
+- Relevant testing performed:
+  - rebuilt the renderer successfully with `npm run build`
+  - verified diagnostics are clean for updated renderer and style files
+
+## Stage 21: Hacker Theme Cohesion (Phase 2)
+
+- Commit:
+  - Pending at the time of writing this update step; local workspace phase-2 execution from hacker theme roadmap
+- Branch:
+  - `main`
+- Main files updated:
+  - `terminal-app/src/App.tsx`
+  - `terminal-app/src/styles.css`
+  - `FEATURES.md`
+  - `DEVELOPMENT_LOG.md`
+- Relevant changes:
+  - strengthened the Hacker xterm palette for clearer green-glow hacker-console readability
+  - added hacker-specific panel framing, corner markers, and glow behavior without altering other theme profiles
+  - improved Hacker hover/focus states for window controls and theme chips for stronger chrome consistency
+- Relevant testing performed:
+  - rebuilt the renderer successfully with `npm run build`
+  - verified diagnostics remain clean in updated source and styles
+
+## Stage 22: Hacker Atmosphere And HUD (Phase 3 + Phase 4)
+
+- Commit:
+  - Pending at the time of writing this update step; local workspace phase-3/4 execution from hacker theme roadmap
+- Branch:
+  - `main`
+- Main files updated:
+  - `terminal-app/src/App.tsx`
+  - `terminal-app/src/styles.css`
+  - `FEATURES.md`
+  - `DEVELOPMENT_LOG.md`
+- Relevant changes:
+  - added Hacker-only atmosphere layers including faint grid texture, matrix-style streaking, and scanline overlays
+  - added runtime HUD strip with LINK/IO/SEC chips and lightweight telemetry placeholders
+  - added runtime-status visual feedback hooks including sync pulse and offline alert pulse
+  - kept all behavior UI-side so shell bridge logic remains unchanged
+- Relevant testing performed:
+  - rebuilt the renderer successfully with `npm run build`
+  - verified diagnostics remain clean in updated source and styles
+
+## Stage 23: Hacker Sub-Profiles And Focus Mode (Phase 5)
+
+- Commit:
+  - Pending at the time of writing this update step; local workspace phase-5 execution from hacker theme roadmap
+- Branch:
+  - `main`
+- Main files updated:
+  - `terminal-app/src/App.tsx`
+  - `terminal-app/src/styles.css`
+  - `FEATURES.md`
+  - `DEVELOPMENT_LOG.md`
+  - `concepts/HACKER_THEME_EXECUTION_PHASES.md`
+- Relevant changes:
+  - added Hacker sub-profiles `Stealth`, `Breach`, and `Forensic` with profile-specific token overrides
+  - added persistent focus mode toggle for Hacker theme that reduces decorative visuals and hides the HUD strip
+  - added compact top-bar controls for profile and focus state without changing terminal input behavior
+  - kept profile/focus settings persisted in local storage for consistent relaunch behavior
+- Relevant testing performed:
+  - verified diagnostics are clean for updated renderer and style files
+  - rebuilt the renderer successfully with `npm run build`
+
 ## Current State Summary
 
 - Active branch:

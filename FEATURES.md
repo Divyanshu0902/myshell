@@ -57,4 +57,9 @@
 - Slimmed the top chrome to preserve more vertical space for output
 - Prompt now auto-focuses and keeps cursor blinking during terminal-only command sessions
 - Terminal output and prompt auto-scroll to bottom so the live cursor stays visible
-- Soft, Standard, and Surge now use distinct full palettes across app chrome and terminal colors
+- Soft, Standard, and Hacker now use distinct full palettes across app chrome and terminal colors
+- Stored legacy theme key `hackerTerminal` is auto-migrated to `hacker`
+- Theme-specific ANSI styling now applies to prompt, output label, and welcome banner accents
+- Hacker profile now has reinforced framed panels, stronger neon-green hover states, and tighter terminal/chrome visual cohesion
+- Hacker profile includes grid/scanline/matrix-inspired atmosphere layers and HUD-style runtime telemetry chips
+- Hacker profile now supports Stealth, Breach, and Forensic sub-profiles with persisted focus mode to hide decorative UI layers
