@@ -351,6 +351,39 @@ input {
   border-bottom: 1px solid rgba(133, 166, 255, 0.1);
 }
 
+.ops-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-bottom: 1px solid rgba(133, 166, 255, 0.12);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), transparent);
+}
+
+.ops-chips,
+.ops-metrics {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.ops-chip,
+.ops-metrics span {
+  font-size: 0.62rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--caption-color);
+}
+
+.ops-chip {
+  padding: 0.2rem 0.42rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+}
+
 .output-meta {
   overflow: hidden;
   white-space: nowrap;
@@ -364,6 +397,19 @@ input {
   gap: 12px;
   min-width: 0;
   flex: 1;
+}
+
+.hacker-mode-controls,
+.hacker-profile-options {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.focus-chip {
+  min-width: 90px;
 }
 
 .glass-output {
@@ -420,6 +466,47 @@ input {
     var(--shadow);
 }
 
+.app-theme-hacker .glass-shell::before,
+.app-theme-hacker .glass-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-theme-hacker .glass-shell::before {
+  background:
+    repeating-linear-gradient(
+      to right,
+      rgba(112, 255, 142, 0.06) 0,
+      rgba(112, 255, 142, 0.06) 1px,
+      transparent 1px,
+      transparent 22px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(112, 255, 142, 0.03) 0,
+      rgba(112, 255, 142, 0.03) 1px,
+      transparent 1px,
+      transparent 20px
+    );
+  opacity: 0.4;
+}
+
+.app-theme-hacker .glass-shell::after {
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(88, 255, 124, 0.05) 0,
+      rgba(88, 255, 124, 0.05) 2px,
+      transparent 2px,
+      transparent 13px
+    );
+  mask-image: linear-gradient(180deg, transparent 0%, black 14%, black 86%, transparent 100%);
+  opacity: 0.35;
+}
+
 .app-theme-hacker .titlebar,
 .app-theme-hacker .output-shell,
 .app-theme-hacker .cwd-badge {
@@ -459,6 +546,30 @@ input {
   border-bottom-color: rgba(121, 255, 110, 0.42);
 }
 
+.app-theme-hacker .ops-strip {
+  border-bottom-color: rgba(116, 255, 131, 0.28);
+  background: linear-gradient(90deg, rgba(74, 255, 108, 0.1), rgba(74, 255, 108, 0.02));
+}
+
+.app-theme-hacker .ops-chip {
+  border-color: rgba(137, 255, 131, 0.44);
+  background: rgba(75, 255, 110, 0.08);
+  color: rgba(185, 255, 193, 0.96);
+  text-shadow: 0 0 8px rgba(99, 255, 133, 0.28);
+}
+
+.app-theme-hacker .ops-metrics span {
+  color: rgba(170, 255, 182, 0.84);
+}
+
+.app-theme-hacker .ops-chip-security {
+  border-color: rgba(190, 255, 137, 0.58);
+}
+
+.app-theme-hacker .ops-chip-profile {
+  border-color: rgba(155, 255, 183, 0.62);
+}
+
 .app-theme-hacker .window-button,
 .app-theme-hacker .settings-chip {
   text-shadow: 0 0 10px rgba(165, 255, 122, 0.2);
@@ -474,6 +585,21 @@ input {
   filter: drop-shadow(0 0 8px rgba(108, 255, 128, 0.22));
 }
 
+.app-theme-hacker .glass-output::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(129, 255, 146, 0.03) 0,
+    rgba(129, 255, 146, 0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  opacity: 0.44;
+}
+
 .app-theme-hacker .settings-slider.compact {
   background: rgba(172, 255, 126, 0.24);
 }
@@ -481,6 +607,85 @@ input {
 .app-theme-hacker .settings-slider.compact::-webkit-slider-thumb {
   border-color: rgba(172, 255, 126, 0.78);
   background: #6dff8f;
+}
+
+.app-theme-hacker .profile-chip {
+  border-color: rgba(137, 255, 131, 0.48);
+}
+
+.app-theme-hacker.app-hacker-profile-stealth .output-shell {
+  box-shadow: 0 0 12px rgba(90, 255, 125, 0.14), var(--shadow);
+}
+
+.app-theme-hacker.app-hacker-profile-stealth .ops-chip {
+  text-shadow: none;
+}
+
+.app-theme-hacker.app-hacker-profile-breach .glass-panel {
+  box-shadow:
+    0 0 0 1px rgba(181, 255, 126, 0.18) inset,
+    0 0 24px rgba(74, 255, 108, 0.28),
+    var(--shadow);
+}
+
+.app-theme-hacker.app-hacker-profile-breach .ops-chip {
+  box-shadow: 0 0 10px rgba(100, 255, 136, 0.24);
+}
+
+.app-theme-hacker.app-hacker-profile-forensic .ops-metrics span {
+  color: rgba(199, 255, 226, 0.88);
+}
+
+.app-theme-hacker.app-hacker-profile-forensic .glass-output::after {
+  opacity: 0.34;
+}
+
+.app-theme-hacker.hacker-focus-mode .glass-shell::before,
+.app-theme-hacker.hacker-focus-mode .glass-shell::after,
+.app-theme-hacker.hacker-focus-mode .glass-output::after {
+  opacity: 0.08;
+}
+
+.app-theme-hacker.hacker-focus-mode .output-shell::before,
+.app-theme-hacker.hacker-focus-mode .output-shell::after,
+.app-theme-hacker.hacker-focus-mode .titlebar::before,
+.app-theme-hacker.hacker-focus-mode .titlebar::after {
+  opacity: 0.28;
+}
+
+.app-theme-hacker.runtime-status-offline .output-shell,
+.app-theme-hacker.runtime-status-offline .ops-strip {
+  animation: hacker-alert-pulse 1.8s ease-in-out infinite;
+}
+
+.app-theme-hacker.runtime-status-booting .ops-chip-link,
+.app-theme-hacker.runtime-status-booting .ops-chip-io {
+  animation: hacker-sync-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes hacker-alert-pulse {
+  0% {
+    box-shadow: 0 0 0 rgba(255, 96, 126, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba(255, 96, 126, 0.28);
+  }
+
+  100% {
+    box-shadow: 0 0 0 rgba(255, 96, 126, 0);
+  }
+}
+
+@keyframes hacker-sync-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 .settings-options.compact {
@@ -568,6 +773,19 @@ input {
   .output-shell {
     min-height: 0;
   }
+
+  .ops-strip {
+    align-items: flex-start;
+  }
+
+  .ops-chips,
+  .ops-metrics {
+    width: 100%;
+  }
+
+  .ops-metrics {
+    justify-content: flex-start;
+  }
   .settings-options.compact {
     flex-wrap: wrap;
   }
@@ -575,6 +793,12 @@ input {
   .settings-strip {
     flex-wrap: wrap;
     justify-content: flex-start;
+  }
+
+  .hacker-mode-controls,
+  .hacker-profile-options {
+    justify-content: flex-start;
+    width: 100%;
   }
 
   .font-dock.compact {

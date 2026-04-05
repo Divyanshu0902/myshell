@@ -8,6 +8,7 @@ const WELCOME_MESSAGE = 'Welcome to apnaShell. Thanks for using it';
 const WELCOME_AUTHOR = ' - Divyanshu';
 const OUTPUT_CONTENT_COLUMN = 'sunBhai> '.length + 1;
 const THEME_ORDER = ['soft', 'standard', 'hacker'] as const;
+const HACKER_PROFILE_ORDER = ['stealth', 'breach', 'forensic'] as const;
 
 const THEME_PRESETS = {
   soft: {
@@ -160,8 +161,8 @@ const THEME_PRESETS = {
       captionColor: 'rgba(176, 255, 195, 0.78)',
       promptAnsi: '\x1b[38;2;126;255;168m',
       outputAnsi: '\x1b[38;2;166;255;112m',
-      welcomeMsgAnsi: '\x1b[38;2;132;255;170m',
-      welcomeAuthorAnsi: '\x1b[38;2;180;255;130m'
+      welcomeMsgAnsi: '\x1b[38;2;255;120;214m',
+      welcomeAuthorAnsi: '\x1b[38;2;119;178;255m'
     },
     terminal: {
       background: '#061208',
@@ -187,7 +188,7 @@ const THEME_PRESETS = {
       brightWhite: '#ffffff'
     }
   }
-} as const;
+};
 const THEME_VISUAL_MAP = {
   soft: 'standard',
   standard: 'soft',
@@ -195,11 +196,83 @@ const THEME_VISUAL_MAP = {
 } as const;
 const STORAGE_KEYS = {
   fontScale: 'myshell-terminal:font-scale',
-  themeMode: 'myshell-terminal:theme-mode'
+  themeMode: 'myshell-terminal:theme-mode',
+  hackerProfile: 'myshell-terminal:hacker-profile',
+  hackerFocusMode: 'myshell-terminal:hacker-focus-mode'
 } as const;
 
 type AppStatus = 'booting' | 'online' | 'offline';
 type ThemeMode = keyof typeof THEME_PRESETS;
+type ThemeCssTokens = (typeof THEME_PRESETS)[ThemeMode]['css'];
+type ThemeTerminalTokens = (typeof THEME_PRESETS)[ThemeMode]['terminal'];
+type ThemePreset = {
+  label: string;
+  css: ThemeCssTokens;
+  terminal: ThemeTerminalTokens;
+};
+type HackerProfile = (typeof HACKER_PROFILE_ORDER)[number];
+
+const HACKER_PROFILE_PRESETS: Record<
+  HackerProfile,
+  {
+    label: string;
+    css: Partial<ThemeCssTokens>;
+    terminal: Partial<ThemeTerminalTokens>;
+  }
+> = {
+  stealth: {
+    label: 'Stealth',
+    css: {
+      orbOpacity: '0.24',
+      outputBg: 'rgba(4, 16, 8, 0.92)',
+      line: 'rgba(96, 255, 146, 0.28)',
+      chipHoverBg: 'rgba(97, 255, 147, 0.18)',
+      promptAnsi: '\x1b[38;2;120;245;160m',
+      outputAnsi: '\x1b[38;2;149;245;122m'
+    },
+    terminal: {
+      foreground: '#a7efbe',
+      cursor: '#5ee584',
+      selectionBackground: 'rgba(111, 255, 139, 0.16)'
+    }
+  },
+  breach: {
+    label: 'Breach',
+    css: {
+      orbOpacity: '0.46',
+      line: 'rgba(114, 255, 158, 0.48)',
+      chipHoverBg: 'rgba(97, 255, 147, 0.32)',
+      danger: '#ff5b67',
+      promptAnsi: '\x1b[38;2;140;255;182m',
+      outputAnsi: '\x1b[38;2;185;255;129m'
+    },
+    terminal: {
+      cursor: '#87ffa9',
+      red: '#ff6a7d',
+      brightRed: '#ff95a4',
+      selectionBackground: 'rgba(111, 255, 139, 0.3)'
+    }
+  },
+  forensic: {
+    label: 'Forensic',
+    css: {
+      orbOpacity: '0.3',
+      muted: 'rgba(177, 255, 216, 0.78)',
+      blue: '#8dffc0',
+      violet: '#86f9b3',
+      chipBorder: 'rgba(121, 255, 209, 0.5)',
+      chipHoverBorder: 'rgba(171, 255, 222, 0.9)',
+      promptAnsi: '\x1b[38;2;150;255;204m',
+      outputAnsi: '\x1b[38;2;174;255;165m'
+    },
+    terminal: {
+      foreground: '#c7ffe2',
+      cursor: '#93ffd4',
+      cyan: '#9effd7',
+      brightCyan: '#c7ffe6'
+    }
+  }
+};
 
 function normalizeChunk(chunk: string) {
   return chunk.replace(/\r?\n/g, '\r\n');
@@ -231,6 +304,23 @@ function readStoredThemeMode(): ThemeMode {
   return stored && stored in THEME_PRESETS ? (stored as ThemeMode) : 'soft';
 }
 
+function readStoredHackerProfile(): HackerProfile {
+  if (typeof window === 'undefined') {
+    return 'stealth';
+  }
+
+  const stored = window.localStorage.getItem(STORAGE_KEYS.hackerProfile);
+  return stored && stored in HACKER_PROFILE_PRESETS ? (stored as HackerProfile) : 'stealth';
+}
+
+function readStoredHackerFocusMode() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  return window.localStorage.getItem(STORAGE_KEYS.hackerFocusMode) === '1';
+}
+
 function formatOutputChunk(chunk: string) {
   return normalizeChunk(chunk).replace(/\r\n/g, `\r\n\x1b[${OUTPUT_CONTENT_COLUMN}G`);
 }
@@ -256,7 +346,25 @@ export default function App() {
   const [currentDirectory, setCurrentDirectory] = useState('workspace pending');
   const [fontScale, setFontScale] = useState(readStoredFontScale);
   const [themeMode, setThemeMode] = useState<ThemeMode>(readStoredThemeMode);
-  const themeConfig = THEME_PRESETS[THEME_VISUAL_MAP[themeMode]];
+  const [hackerProfile, setHackerProfile] = useState<HackerProfile>(readStoredHackerProfile);
+  const [hackerFocusMode, setHackerFocusMode] = useState(readStoredHackerFocusMode);
+  const [commandCount, setCommandCount] = useState(0);
+  const baseThemeMode = THEME_VISUAL_MAP[themeMode];
+  const baseTheme = THEME_PRESETS[baseThemeMode];
+  const hackerProfileConfig = baseThemeMode === 'hacker' ? HACKER_PROFILE_PRESETS[hackerProfile] : null;
+  const themeConfig: ThemePreset = hackerProfileConfig
+    ? {
+        label: baseTheme.label,
+        css: {
+          ...baseTheme.css,
+          ...hackerProfileConfig.css
+        },
+        terminal: {
+          ...baseTheme.terminal,
+          ...hackerProfileConfig.terminal
+        }
+      }
+    : baseTheme;
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEYS.fontScale, fontScale.toFixed(2));
@@ -267,10 +375,18 @@ export default function App() {
   }, [themeMode]);
 
   useEffect(() => {
-    const activeTheme = THEME_PRESETS[themeMode].css;
+    window.localStorage.setItem(STORAGE_KEYS.hackerProfile, hackerProfile);
+  }, [hackerProfile]);
+
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEYS.hackerFocusMode, hackerFocusMode ? '1' : '0');
+  }, [hackerFocusMode]);
+
+  useEffect(() => {
+    const activeTheme = themeConfig.css;
     promptLabelRef.current = `${activeTheme.promptAnsi}bolBhai\x1b[0m>> `;
     outputPrefixRef.current = `${activeTheme.outputAnsi}sunBhai\x1b[0m> `;
-  }, [themeMode]);
+  }, [themeConfig]);
 
   useEffect(() => {
     const term = new Terminal({
@@ -381,6 +497,7 @@ export default function App() {
       }
 
       commandHistoryRef.current.push(command);
+      setCommandCount((count) => count + 1);
       historyIndexRef.current = null;
       inputBufferRef.current = '';
       outputBlockOpenRef.current = false;
@@ -567,6 +684,14 @@ export default function App() {
   }, [appReady, bootVisible]);
 
   const shellVersion = 'v1 (April 05, 2026)';
+  const linkState = status === 'online' ? 'stable' : status === 'booting' ? 'syncing' : 'down';
+  const ioState = status === 'online' ? 'active' : status === 'booting' ? 'init' : 'idle';
+  const securityState = status === 'offline' ? 'breach' : status === 'booting' ? 'handshake' : 'secure';
+  const telemetryLatency = status === 'online' ? `${11 + (commandCount % 9)}ms` : '--';
+  const telemetryPackets = status === 'online' ? `${88 + (commandCount % 21)} pk/s` : '--';
+  const telemetryIntegrity = status === 'offline' ? 'fault' : status === 'booting' ? 'sync' : 'green';
+  const isHackerTheme = themeMode === 'hacker';
+
   const appStyle = {
     '--bg-radial-left': themeConfig.css.bgRadialLeft,
     '--bg-radial-right': themeConfig.css.bgRadialRight,
@@ -599,9 +724,12 @@ export default function App() {
   } as CSSProperties;
 
   return (
-    <div className={`app-shell glass-shell app-theme-${themeMode} ${appReady ? 'app-ready' : ''}`} style={appStyle}>
-      <div className="ambient-orb ambient-orb-left" />
-      <div className="ambient-orb ambient-orb-right" />
+    <div
+      className={`app-shell glass-shell app-theme-${themeMode} ${isHackerTheme ? `app-hacker-profile-${hackerProfile}` : ''} ${isHackerTheme && hackerFocusMode ? 'hacker-focus-mode' : ''} runtime-status-${status} ${appReady ? 'app-ready' : ''}`}
+      style={appStyle}
+    >
+      {isHackerTheme && hackerFocusMode ? null : <div className="ambient-orb ambient-orb-left" />}
+      {isHackerTheme && hackerFocusMode ? null : <div className="ambient-orb ambient-orb-right" />}
 
       {bootVisible ? (
         <div className={`boot-overlay ${appReady ? 'boot-overlay-hide' : ''}`}>
@@ -658,6 +786,29 @@ export default function App() {
                   </button>
                 ))}
               </div>
+              {isHackerTheme ? (
+                <div className="hacker-mode-controls">
+                  <div className="hacker-profile-options">
+                    {HACKER_PROFILE_ORDER.map((profileId) => (
+                      <button
+                        key={profileId}
+                        className={`settings-chip compact profile-chip ${hackerProfile === profileId ? 'selected' : ''}`}
+                        onClick={() => setHackerProfile(profileId)}
+                        type="button"
+                      >
+                        {HACKER_PROFILE_PRESETS[profileId].label}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    className={`settings-chip compact focus-chip ${hackerFocusMode ? 'selected' : ''}`}
+                    onClick={() => setHackerFocusMode((prev) => !prev)}
+                    type="button"
+                  >
+                    Focus {hackerFocusMode ? 'On' : 'Off'}
+                  </button>
+                </div>
+              ) : null}
               <div className="font-dock compact">
                 <label className="dock-label" htmlFor="font-scale-slider">font {Math.round(fontScale * 100)}%</label>
                 <input
@@ -673,6 +824,22 @@ export default function App() {
               </div>
             </div>
           </div>
+          {isHackerTheme && !hackerFocusMode ? (
+            <div className="ops-strip">
+              <div className="ops-chips">
+                <span className="ops-chip ops-chip-link">LINK {linkState}</span>
+                <span className="ops-chip ops-chip-io">IO {ioState}</span>
+                <span className="ops-chip ops-chip-security">SEC {securityState}</span>
+                {isHackerTheme ? <span className="ops-chip ops-chip-profile">PROFILE {hackerProfile}</span> : null}
+              </div>
+              <div className="ops-metrics">
+                <span>lat {telemetryLatency}</span>
+                <span>packets {telemetryPackets}</span>
+                <span>integrity {telemetryIntegrity}</span>
+                <span>cmds {commandCount}</span>
+              </div>
+            </div>
+          ) : null}
           <div className="glass-output" onClick={() => terminalRef.current?.focus()}>
             <div ref={terminalHostRef} className="terminal-host" />
           </div>
