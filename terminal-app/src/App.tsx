@@ -169,7 +169,7 @@ const THEME_PRESETS = {
     },
     terminal: {
       background: '#061208',
-      foreground: '#b9ffd0',
+      foreground: '#2da955',
       cursor: '#6bff93',
       cursorAccent: '#061208',
       selectionBackground: 'rgba(111, 255, 139, 0.24)',
@@ -506,7 +506,8 @@ export default function App() {
   useEffect(() => {
     const textAnsi = THEME_TEXT_ANSI[themeMode];
     promptLabelRef.current = `${textAnsi.prompt}bolBhai\x1b[0m>> `;
-    outputPrefixRef.current = `${textAnsi.output}sunBhai>> `;
+    outputPrefixRef.current =
+      themeMode === 'soft' ? `${textAnsi.output}sunBhai\x1b[0m>> ` : `${textAnsi.output}sunBhai>> `;
   }, [themeMode]);
 
   useEffect(() => {
