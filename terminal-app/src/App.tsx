@@ -5,8 +5,8 @@ import { FitAddon } from '@xterm/addon-fit';
 const BASE_FONT_SIZE = 15;
 const BOOT_STEPS = ['authenticating runtime', 'binding transport', 'warming output log', 'linking apnaShell'];
 const WELCOME_PREFIX = 'Welcome to apnaShell. With love from - ';
-const WELCOME_NAME = 'Divyanshu';
-const WELCOME_SUFFIX = ' !';
+const WELCOME_NAME = 'Divyanshu !';
+const WELCOME_SUFFIX = '';
 const OUTPUT_CONTENT_COLUMN = 'sunBhai>> '.length + 1;
 const THEME_ORDER = ['soft', 'standard', 'hacker'] as const;
 const HACKER_PROFILE_ORDER = ['stealth', 'breach', 'forensic'] as const;
@@ -44,10 +44,10 @@ const THEME_PRESETS = {
       titleGradMid: '#f4fbff',
       titleGradEnd: '#c6b9ff',
       captionColor: 'rgba(208, 222, 250, 0.72)',
-      promptAnsi: '\x1b[38;2;154;188;255m',
-      outputAnsi: '\x1b[38;2;255;145;168m',
-      welcomeMsgAnsi: '\x1b[38;2;255;120;214m',
-      welcomeAuthorAnsi: '\x1b[38;2;119;178;255m'
+      promptAnsi: '\x1b[94m',
+      outputAnsi: '\x1b[91m',
+      welcomeMsgAnsi: '\x1b[95m',
+      welcomeAuthorAnsi: '\x1b[94m'
     },
     terminal: {
       background: '#0c111a',
@@ -64,11 +64,11 @@ const THEME_PRESETS = {
       cyan: '#9edbff',
       white: '#f2f7ff',
       brightBlack: '#3a4660',
-      brightRed: '#ffabc0',
+      brightRed: '#c93a4f',
       brightGreen: '#b8f7de',
       brightYellow: '#f7dfb7',
       brightBlue: '#b7ccff',
-      brightMagenta: '#cab9ff',
+      brightMagenta: '#ff63df',
       brightCyan: '#b9e7ff',
       brightWhite: '#ffffff'
     }
@@ -103,10 +103,10 @@ const THEME_PRESETS = {
       titleGradMid: '#d7ebff',
       titleGradEnd: '#b8a8ff',
       captionColor: 'rgba(210, 224, 255, 0.62)',
-      promptAnsi: '\x1b[38;2;119;178;255m',
-      outputAnsi: '\x1b[38;2;255;92;92m',
-      welcomeMsgAnsi: '\x1b[38;2;255;120;214m',
-      welcomeAuthorAnsi: '\x1b[38;2;116;244;201m'
+      promptAnsi: '\x1b[97m',
+      outputAnsi: '\x1b[97m',
+      welcomeMsgAnsi: '\x1b[97m',
+      welcomeAuthorAnsi: '\x1b[97m'
     },
     terminal: {
       background: '#070b12',
@@ -115,7 +115,7 @@ const THEME_PRESETS = {
       cursorAccent: '#070b12',
       selectionBackground: 'rgba(117, 169, 255, 0.18)',
       black: '#0a0e16',
-      red: '#ff6b9a',
+      red: '#c93a4f',
       green: '#76f7c7',
       yellow: '#ffd37d',
       blue: '#77b2ff',
@@ -126,8 +126,8 @@ const THEME_PRESETS = {
       brightRed: '#ff8ab0',
       brightGreen: '#8dffe0',
       brightYellow: '#ffe29f',
-      brightBlue: '#9dc5ff',
-      brightMagenta: '#ac97ff',
+      brightBlue: '#2f7dff',
+      brightMagenta: '#ff00d9',
       brightCyan: '#a7e8ff',
       brightWhite: '#ffffff'
     }
@@ -162,10 +162,10 @@ const THEME_PRESETS = {
       titleGradMid: '#d8ffe8',
       titleGradEnd: '#9fff7c',
       captionColor: 'rgba(176, 255, 195, 0.78)',
-      promptAnsi: '\x1b[38;2;126;255;168m',
-      outputAnsi: '\x1b[38;2;166;255;112m',
-      welcomeMsgAnsi: '\x1b[38;2;52;186;84m',
-      welcomeAuthorAnsi: '\x1b[38;2;52;186;84m'
+      promptAnsi: '\x1b[92m',
+      outputAnsi: '\x1b[92m',
+      welcomeMsgAnsi: '\x1b[32m',
+      welcomeAuthorAnsi: '\x1b[32m'
     },
     terminal: {
       background: '#061208',
@@ -174,19 +174,19 @@ const THEME_PRESETS = {
       cursorAccent: '#061208',
       selectionBackground: 'rgba(111, 255, 139, 0.24)',
       black: '#0f1d12',
-      red: '#ff5a79',
-      green: '#64ff8b',
+      red: '#2da955',
+      green: '#2da955',
       yellow: '#9fff7f',
-      blue: '#7eff9f',
-      magenta: '#84ffb3',
+      blue: '#2da955',
+      magenta: '#2da955',
       cyan: '#b2ff8e',
       white: '#ecffee',
       brightBlack: '#2a5e34',
-      brightRed: '#ff8ca7',
+      brightRed: '#2da955',
       brightGreen: '#8cffad',
       brightYellow: '#c8ffad',
-      brightBlue: '#abffc0',
-      brightMagenta: '#9affb3',
+      brightBlue: '#2da955',
+      brightMagenta: '#2da955',
       brightCyan: '#ccffb9',
       brightWhite: '#ffffff'
     }
@@ -196,6 +196,26 @@ const THEME_VISUAL_MAP = {
   soft: 'standard',
   standard: 'soft',
   hacker: 'hacker'
+} as const;
+const THEME_TEXT_ANSI = {
+  soft: {
+    prompt: '\x1b[94m',
+    output: '\x1b[31m',
+    welcomeMsg: '\x1b[95m',
+    welcomeAuthor: '\x1b[94m'
+  },
+  standard: {
+    prompt: '\x1b[94m',
+    output: '\x1b[31m',
+    welcomeMsg: '\x1b[95m',
+    welcomeAuthor: '\x1b[94m'
+  },
+  hacker: {
+    prompt: '\x1b[94m',
+    output: '\x1b[31m',
+    welcomeMsg: '\x1b[95m',
+    welcomeAuthor: '\x1b[94m'
+  }
 } as const;
 const STORAGE_KEYS = {
   fontScale: 'myshell-terminal:font-scale',
@@ -231,8 +251,8 @@ const HACKER_PROFILE_PRESETS: Record<
       outputBg: 'rgba(4, 16, 8, 0.92)',
       line: 'rgba(96, 255, 146, 0.28)',
       chipHoverBg: 'rgba(97, 255, 147, 0.18)',
-      promptAnsi: '\x1b[38;2;120;245;160m',
-      outputAnsi: '\x1b[38;2;149;245;122m'
+      promptAnsi: '\x1b[92m',
+      outputAnsi: '\x1b[92m'
     },
     terminal: {
       foreground: '#a7efbe',
@@ -247,13 +267,13 @@ const HACKER_PROFILE_PRESETS: Record<
       line: 'rgba(114, 255, 158, 0.48)',
       chipHoverBg: 'rgba(97, 255, 147, 0.32)',
       danger: '#ff5b67',
-      promptAnsi: '\x1b[38;2;140;255;182m',
-      outputAnsi: '\x1b[38;2;185;255;129m'
+      promptAnsi: '\x1b[92m',
+      outputAnsi: '\x1b[92m'
     },
     terminal: {
       cursor: '#87ffa9',
-      red: '#ff6a7d',
-      brightRed: '#ff95a4',
+      red: '#2da955',
+      brightRed: '#2da955',
       selectionBackground: 'rgba(111, 255, 139, 0.3)'
     }
   },
@@ -266,8 +286,8 @@ const HACKER_PROFILE_PRESETS: Record<
       violet: '#86f9b3',
       chipBorder: 'rgba(121, 255, 209, 0.5)',
       chipHoverBorder: 'rgba(171, 255, 222, 0.9)',
-      promptAnsi: '\x1b[38;2;150;255;204m',
-      outputAnsi: '\x1b[38;2;174;255;165m'
+      promptAnsi: '\x1b[92m',
+      outputAnsi: '\x1b[92m'
     },
     terminal: {
       foreground: '#c7ffe2',
@@ -356,8 +376,8 @@ export default function App() {
   const promptVisibleRef = useRef(false);
   const welcomeReadyRef = useRef(false);
   const promptTimerRef = useRef<number | null>(null);
-  const promptLabelRef = useRef('\x1b[38;2;119;178;255mbolBhai\x1b[0m>> ');
-  const outputPrefixRef = useRef('\x1b[38;2;255;92;92msunBhai\x1b[0m>> ');
+  const promptLabelRef = useRef('\x1b[94mbolBhai\x1b[0m>> ');
+  const outputPrefixRef = useRef('\x1b[31msunBhai>> ');
   const statusRef = useRef<AppStatus>('booting');
   const [status, setStatus] = useState<AppStatus>('booting');
   const [shellPath, setShellPath] = useState('shell-core/myshell_v6.exe');
@@ -404,10 +424,10 @@ export default function App() {
             titleGradMid: '#ffffff',
             titleGradEnd: '#ffffff',
             captionColor: 'rgba(255, 255, 255, 0.72)',
-            promptAnsi: '\x1b[38;2;255;255;255m',
-            outputAnsi: '\x1b[38;2;255;255;255m',
-            welcomeMsgAnsi: '\x1b[38;2;255;255;255m',
-            welcomeAuthorAnsi: '\x1b[38;2;255;255;255m'
+            promptAnsi: '\x1b[97m',
+            outputAnsi: '\x1b[97m',
+            welcomeMsgAnsi: '\x1b[97m',
+            welcomeAuthorAnsi: '\x1b[97m'
           },
           terminal: {
             background: '#000000',
@@ -484,16 +504,10 @@ export default function App() {
   }, [hackerModulesOpen]);
 
   useEffect(() => {
-    const activeTheme = themeConfig.css;
-    const promptAnsi =
-      themeMode === 'soft'
-        ? '\x1b[38;2;119;178;255m'
-        : themeMode === 'standard'
-          ? '\x1b[38;2;167;167;167m'
-          : activeTheme.promptAnsi;
-    promptLabelRef.current = `${promptAnsi}bolBhai\x1b[0m>> `;
-    outputPrefixRef.current = `${activeTheme.outputAnsi}sunBhai\x1b[0m>> `;
-  }, [themeConfig, themeMode]);
+    const textAnsi = THEME_TEXT_ANSI[themeMode];
+    promptLabelRef.current = `${textAnsi.prompt}bolBhai\x1b[0m>> `;
+    outputPrefixRef.current = `${textAnsi.output}sunBhai>> `;
+  }, [themeMode]);
 
   useEffect(() => {
     const term = new Terminal({
@@ -726,10 +740,10 @@ export default function App() {
       terminalRef.current?.write(`\r\n[shell error: ${payload.message}]\r\n`);
     });
 
-    const writeWelcomeMessage = (themeCss: ThemeCssTokens) => {
+    const writeWelcomeMessage = (textAnsi: (typeof THEME_TEXT_ANSI)[ThemeMode]) => {
       fitAddonRef.current?.fit();
       terminalRef.current?.write(
-        `\x1b[2K\x1b[1G${themeCss.welcomeMsgAnsi}${WELCOME_PREFIX}\x1b[0m${themeCss.welcomeAuthorAnsi}${WELCOME_NAME}\x1b[0m${themeCss.welcomeMsgAnsi}${WELCOME_SUFFIX}\x1b[0m\r\n`
+        `\x1b[2K\x1b[1G${textAnsi.welcomeMsg}${WELCOME_PREFIX}\x1b[0m${textAnsi.welcomeAuthor}${WELCOME_NAME}\x1b[0m${textAnsi.welcomeMsg}${WELCOME_SUFFIX}\x1b[0m\r\n`
       );
       welcomeReadyRef.current = true;
       schedulePrompt();
@@ -742,7 +756,7 @@ export default function App() {
       setCurrentDirectory(normalizedCwd);
       window.requestAnimationFrame(() => {
         window.requestAnimationFrame(() => {
-          writeWelcomeMessage(themeConfig.css);
+          writeWelcomeMessage(THEME_TEXT_ANSI[themeMode]);
         });
       });
       window.setTimeout(() => setBootIndex(BOOT_STEPS.length - 1), 60);
