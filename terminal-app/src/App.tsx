@@ -170,7 +170,7 @@ const THEME_PRESETS = {
     },
     terminal: {
       background: '#061208',
-      foreground: '#ffffff',
+      foreground: '#58c66f',
       cursor: '#6bff93',
       cursorAccent: '#061208',
       selectionBackground: 'rgba(111, 255, 139, 0.24)',
