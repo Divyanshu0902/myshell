@@ -198,7 +198,8 @@ const STORAGE_KEYS = {
   fontScale: 'myshell-terminal:font-scale',
   themeMode: 'myshell-terminal:theme-mode',
   hackerProfile: 'myshell-terminal:hacker-profile',
-  hackerFocusMode: 'myshell-terminal:hacker-focus-mode'
+  hackerFocusMode: 'myshell-terminal:hacker-focus-mode',
+  hackerModulesOpen: 'myshell-terminal:hacker-modules-open'
 } as const;
 
 type AppStatus = 'booting' | 'online' | 'offline';
@@ -321,6 +322,14 @@ function readStoredHackerFocusMode() {
   return window.localStorage.getItem(STORAGE_KEYS.hackerFocusMode) === '1';
 }
 
+function readStoredHackerModulesOpen() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  return window.localStorage.getItem(STORAGE_KEYS.hackerModulesOpen) === '1';
+}
+
 function formatOutputChunk(chunk: string) {
   return normalizeChunk(chunk).replace(/\r\n/g, `\r\n\x1b[${OUTPUT_CONTENT_COLUMN}G`);
 }
@@ -348,6 +357,7 @@ export default function App() {
   const [themeMode, setThemeMode] = useState<ThemeMode>(readStoredThemeMode);
   const [hackerProfile, setHackerProfile] = useState<HackerProfile>(readStoredHackerProfile);
   const [hackerFocusMode, setHackerFocusMode] = useState(readStoredHackerFocusMode);
+  const [hackerModulesOpen, setHackerModulesOpen] = useState(readStoredHackerModulesOpen);
   const [commandCount, setCommandCount] = useState(0);
   const baseThemeMode = THEME_VISUAL_MAP[themeMode];
   const baseTheme = THEME_PRESETS[baseThemeMode];
@@ -381,6 +391,10 @@ export default function App() {
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEYS.hackerFocusMode, hackerFocusMode ? '1' : '0');
   }, [hackerFocusMode]);
+
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEYS.hackerModulesOpen, hackerModulesOpen ? '1' : '0');
+  }, [hackerModulesOpen]);
 
   useEffect(() => {
     const activeTheme = themeConfig.css;
@@ -691,6 +705,20 @@ export default function App() {
   const telemetryPackets = status === 'online' ? `${88 + (commandCount % 21)} pk/s` : '--';
   const telemetryIntegrity = status === 'offline' ? 'fault' : status === 'booting' ? 'sync' : 'green';
   const isHackerTheme = themeMode === 'hacker';
+  const hackerSignalStrength = status === 'online' ? 78 + (commandCount % 20) : status === 'booting' ? 52 : 12;
+  const hackerWaveSamples = Array.from({ length: 18 }, (_, idx) => {
+    const amplitude = Math.sin((commandCount + idx + 1) * 0.65);
+    return Math.round(((amplitude + 1) / 2) * 100);
+  });
+  const hackerHexSeed = (commandCount * 97 + hackerSignalStrength * 13).toString(16).toUpperCase();
+  const hackerHexRows = Array.from({ length: 4 }, (_, idx) => {
+    const seed = Number.parseInt(hackerHexSeed || '0', 16);
+    const value = (seed + idx * 4093).toString(16).toUpperCase().padStart(8, '0');
+    const channel = (hackerSignalStrength + idx * 3).toString(16).toUpperCase().padStart(2, '0');
+    return `${value} A7 ${channel}`;
+  });
+  const hackerAlertLabel =
+    status === 'offline' ? 'critical: link compromised' : status === 'booting' ? 'syncing secure channel' : 'nominal secure channel';
 
   const appStyle = {
     '--bg-radial-left': themeConfig.css.bgRadialLeft,
@@ -725,7 +753,7 @@ export default function App() {
 
   return (
     <div
-      className={`app-shell glass-shell app-theme-${themeMode} ${isHackerTheme ? `app-hacker-profile-${hackerProfile}` : ''} ${isHackerTheme && hackerFocusMode ? 'hacker-focus-mode' : ''} runtime-status-${status} ${appReady ? 'app-ready' : ''}`}
+      className={`app-shell glass-shell app-theme-${themeMode} ${isHackerTheme ? `app-hacker-profile-${hackerProfile}` : ''} ${isHackerTheme && hackerFocusMode ? 'hacker-focus-mode' : ''} ${isHackerTheme && hackerModulesOpen ? 'hacker-modules-open' : ''} runtime-status-${status} ${appReady ? 'app-ready' : ''}`}
       style={appStyle}
     >
       {isHackerTheme && hackerFocusMode ? null : <div className="ambient-orb ambient-orb-left" />}
@@ -801,6 +829,13 @@ export default function App() {
                     ))}
                   </div>
                   <button
+                    className={`settings-chip compact modules-chip ${hackerModulesOpen ? 'selected' : ''}`}
+                    onClick={() => setHackerModulesOpen((prev) => !prev)}
+                    type="button"
+                  >
+                    Modules {hackerModulesOpen ? 'On' : 'Off'}
+                  </button>
+                  <button
                     className={`settings-chip compact focus-chip ${hackerFocusMode ? 'selected' : ''}`}
                     onClick={() => setHackerFocusMode((prev) => !prev)}
                     type="button"
@@ -824,6 +859,7 @@ export default function App() {
               </div>
             </div>
           </div>
+          {isHackerTheme ? <div className={`hacker-alert-ribbon hacker-alert-${status}`}>{hackerAlertLabel}</div> : null}
           {isHackerTheme && !hackerFocusMode ? (
             <div className="ops-strip">
               <div className="ops-chips">
@@ -843,6 +879,33 @@ export default function App() {
           <div className="glass-output" onClick={() => terminalRef.current?.focus()}>
             <div ref={terminalHostRef} className="terminal-host" />
           </div>
+          {isHackerTheme && hackerModulesOpen && !hackerFocusMode ? (
+            <aside className="hacker-diagnostics glass-panel" aria-label="Hacker diagnostics modules">
+              <div className="diag-widget">
+                <p className="diag-label">signal waveform</p>
+                <div className="wave-strip">
+                  {hackerWaveSamples.map((sample, idx) => (
+                    <span key={`wave-${idx}`} style={{ height: `${18 + sample * 0.68}%` }} />
+                  ))}
+                </div>
+              </div>
+              <div className="diag-widget">
+                <p className="diag-label">hex readout</p>
+                <div className="hex-grid">
+                  {hackerHexRows.map((row, idx) => (
+                    <span key={`hex-${idx}`}>{row}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="diag-widget">
+                <p className="diag-label">signal integrity</p>
+                <div className="signal-track">
+                  <div className="signal-fill" style={{ width: `${hackerSignalStrength}%` }} />
+                </div>
+                <p className="diag-value">{hackerSignalStrength}% secure</p>
+              </div>
+            </aside>
+          ) : null}
         </section>
       </main>
     </div>

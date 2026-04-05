@@ -412,6 +412,10 @@ input {
   min-width: 90px;
 }
 
+.modules-chip {
+  min-width: 108px;
+}
+
 .glass-output {
   position: relative;
   min-height: 0;
@@ -613,6 +617,103 @@ input {
   border-color: rgba(137, 255, 131, 0.48);
 }
 
+.app-theme-hacker .hacker-alert-ribbon {
+  padding: 0.36rem 0.72rem;
+  border-bottom: 1px solid rgba(121, 255, 110, 0.34);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(179, 255, 191, 0.92);
+  background: linear-gradient(90deg, rgba(74, 255, 108, 0.16), rgba(74, 255, 108, 0.04));
+}
+
+.app-theme-hacker .hacker-alert-booting {
+  color: rgba(201, 255, 175, 0.9);
+}
+
+.app-theme-hacker .hacker-alert-online {
+  color: rgba(182, 255, 195, 0.92);
+}
+
+.app-theme-hacker .hacker-alert-offline {
+  color: rgba(255, 168, 188, 0.95);
+  border-bottom-color: rgba(255, 114, 139, 0.42);
+  background: linear-gradient(90deg, rgba(255, 74, 113, 0.2), rgba(255, 74, 113, 0.06));
+}
+
+.app-theme-hacker.hacker-modules-open .glass-output {
+  padding-right: calc(16px + clamp(220px, 28vw, 310px) + 12px);
+}
+
+.app-theme-hacker .hacker-diagnostics {
+  position: absolute;
+  top: 132px;
+  right: 12px;
+  bottom: 16px;
+  width: clamp(220px, 28vw, 310px);
+  z-index: 2;
+  padding: 10px;
+  display: grid;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  border-color: rgba(118, 255, 142, 0.42);
+  background: linear-gradient(180deg, rgba(12, 48, 20, 0.82), rgba(5, 20, 9, 0.9));
+}
+
+.app-theme-hacker .diag-widget {
+  border: 1px solid rgba(116, 255, 131, 0.24);
+  background: rgba(9, 30, 13, 0.76);
+  padding: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.app-theme-hacker .diag-label,
+.app-theme-hacker .diag-value {
+  margin: 0;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(172, 255, 183, 0.82);
+}
+
+.app-theme-hacker .wave-strip {
+  height: 72px;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.app-theme-hacker .wave-strip span {
+  flex: 1;
+  min-width: 4px;
+  background: linear-gradient(180deg, rgba(173, 255, 126, 0.9), rgba(95, 255, 132, 0.35));
+}
+
+.app-theme-hacker .hex-grid {
+  display: grid;
+  gap: 4px;
+}
+
+.app-theme-hacker .hex-grid span {
+  font-family: 'JetBrains Mono', 'Cascadia Code', monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  color: rgba(184, 255, 197, 0.88);
+}
+
+.app-theme-hacker .signal-track {
+  width: 100%;
+  height: 8px;
+  border: 1px solid rgba(167, 255, 137, 0.44);
+  background: rgba(9, 28, 12, 0.72);
+}
+
+.app-theme-hacker .signal-fill {
+  height: 100%;
+  background: linear-gradient(90deg, rgba(98, 255, 129, 0.74), rgba(186, 255, 147, 0.94));
+}
+
 .app-theme-hacker.app-hacker-profile-stealth .output-shell {
   box-shadow: 0 0 12px rgba(90, 255, 125, 0.14), var(--shadow);
 }
@@ -651,6 +752,11 @@ input {
 .app-theme-hacker.hacker-focus-mode .titlebar::before,
 .app-theme-hacker.hacker-focus-mode .titlebar::after {
   opacity: 0.28;
+}
+
+.app-theme-hacker.hacker-focus-mode .hacker-alert-ribbon,
+.app-theme-hacker.hacker-focus-mode .hacker-diagnostics {
+  display: none;
 }
 
 .app-theme-hacker.runtime-status-offline .output-shell,
@@ -799,6 +905,17 @@ input {
   .hacker-profile-options {
     justify-content: flex-start;
     width: 100%;
+  }
+
+  .app-theme-hacker.hacker-modules-open .glass-output {
+    padding-right: 16px;
+  }
+
+  .app-theme-hacker .hacker-diagnostics {
+    position: static;
+    width: 100%;
+    height: auto;
+    margin: 8px 12px 12px;
   }
 
   .font-dock.compact {
