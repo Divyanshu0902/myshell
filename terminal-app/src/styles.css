@@ -1,14 +1,28 @@
 :root {
   color-scheme: dark;
+  --bg-radial-left: rgba(127, 107, 255, 0.22);
+  --bg-radial-right: rgba(116, 167, 255, 0.18);
+  --bg-top: #070911;
+  --bg-bottom: #04060d;
   --text: #eef4ff;
   --muted: rgba(210, 224, 255, 0.62);
   --line: rgba(133, 166, 255, 0.18);
   --glass: rgba(13, 16, 26, 0.54);
-  --glass-strong: rgba(18, 22, 34, 0.7);
   --blue: #74a7ff;
   --violet: #7f6bff;
   --green: #86f3ca;
   --danger: #ff7fa8;
+  --orb-left: #7f6bff;
+  --orb-right: #4b8cff;
+  --orb-opacity: 0.28;
+  --output-bg: rgba(6, 10, 18, 0.72);
+  --cwd-border: rgba(118, 244, 138, 0.3);
+  --cwd-top: rgba(118, 244, 138, 0.08);
+  --cwd-bottom: rgba(12, 18, 26, 0.72);
+  --chip-border: rgba(133, 166, 255, 0.2);
+  --chip-bg: rgba(20, 24, 36, 0.48);
+  --chip-hover-border: rgba(133, 166, 255, 0.42);
+  --chip-hover-bg: rgba(116, 167, 255, 0.12);
   --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
 }
 
@@ -27,9 +41,9 @@ body,
 body {
   overflow: hidden;
   background:
-    radial-gradient(circle at 18% 12%, rgba(127, 107, 255, calc(0.22 * var(--theme-intensity, 1))), transparent 24%),
-    radial-gradient(circle at 82% 18%, rgba(116, 167, 255, calc(0.18 * var(--theme-intensity, 1))), transparent 24%),
-    linear-gradient(180deg, #070911 0%, #04060d 100%);
+    radial-gradient(circle at 18% 12%, var(--bg-radial-left), transparent 26%),
+    radial-gradient(circle at 82% 18%, var(--bg-radial-right), transparent 26%),
+    linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
   color: var(--text);
   font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
 }
@@ -57,20 +71,20 @@ input {
   height: 420px;
   border-radius: 999px;
   filter: blur(90px);
-  opacity: calc(0.28 * var(--theme-intensity, 1));
+  opacity: var(--orb-opacity);
   pointer-events: none;
 }
 
 .ambient-orb-left {
   top: -140px;
   left: -90px;
-  background: #7f6bff;
+  background: var(--orb-left);
 }
 
 .ambient-orb-right {
   top: 10%;
   right: -120px;
-  background: #4b8cff;
+  background: var(--orb-right);
 }
 
 .glass-panel {
@@ -234,8 +248,8 @@ input {
   padding: 9px 12px;
   display: grid;
   gap: 4px;
-  border: 1px solid rgba(118, 244, 138, 0.3);
-  background: linear-gradient(180deg, rgba(118, 244, 138, 0.08), rgba(12, 18, 26, 0.72));
+  border: 1px solid var(--cwd-border);
+  background: linear-gradient(180deg, var(--cwd-top), var(--cwd-bottom));
 }
 
 .output-header .cwd-badge {
@@ -265,8 +279,8 @@ input {
 
 .window-button,
 .settings-chip {
-  border: 1px solid rgba(133, 166, 255, 0.2);
-  background: rgba(20, 24, 36, 0.48);
+  border: 1px solid var(--chip-border);
+  background: var(--chip-bg);
   color: var(--text);
   padding: 0.42rem 0.62rem;
   font-size: 0.68rem;
@@ -280,8 +294,8 @@ input {
 .window-button:hover,
 .settings-chip:hover,
 .settings-chip.selected {
-  border-color: rgba(133, 166, 255, 0.42);
-  background: rgba(116, 167, 255, 0.12);
+  border-color: var(--chip-hover-border);
+  background: var(--chip-hover-bg);
   transform: translateY(-1px);
 }
 
@@ -354,7 +368,7 @@ input {
   min-width: 0;
   height: 100%;
   padding: 16px 16px 18px;
-  background: rgba(6, 10, 18, 0.72);
+  background: var(--output-bg);
   overflow: hidden;
   box-sizing: border-box;
   display: flex;

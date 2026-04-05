@@ -43,6 +43,13 @@ Use the entries below to track each packaging milestone.
 - Result: Prompt rendering now restores focus, output/prompt writes auto-scroll to the bottom, and xterm is measured on an unpadded host.
 - Follow-up: Validate in a live command session, then proceed with installer build generation.
 
+### 2026-04-05 - Theme Palette Separation
+
+- Change: Reworked Soft, Standard, and Surge into distinct visual palettes for both app chrome and terminal colors.
+- Reason: Theme switching needed clear, immediate visual differences before release packaging.
+- Result: Each theme now updates background gradients, panel tones, accent styling, and xterm color maps.
+- Follow-up: Perform live visual verification of all three themes, then continue installer generation.
+
 ## Planned Future Entries
 
 - build script added

@@ -57,3 +57,4 @@
 - Slimmed the top chrome to preserve more vertical space for output
 - Prompt now auto-focuses and keeps cursor blinking during terminal-only command sessions
 - Terminal output and prompt auto-scroll to bottom so the live cursor stays visible
+- Soft, Standard, and Surge now use distinct full palettes across app chrome and terminal colors

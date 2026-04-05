@@ -427,6 +427,25 @@ This document records the major stages of the project from the initial version u
   - pending live-session verification with multiple command rounds and long output runs
   - expected outcome is that the cursor remains visible at the bottom and keeps blinking after repeated commands
 
+## Stage 19: Distinct Theme Palettes
+
+- Commit:
+  - Pending at the time of writing this update step; local workspace UI theming refinement before installer packaging
+- Branch:
+  - `main`
+- Main files updated:
+  - `terminal-app/src/App.tsx`
+  - `terminal-app/src/styles.css`
+  - `FEATURES.md`
+  - `DEVELOPMENT_LOG.md`
+- Relevant changes:
+  - replaced intensity-only theme switching with full per-theme token sets for Soft, Standard, and Surge
+  - applied separate background, panel, accent, and control styling per theme mode through CSS variables
+  - applied separate xterm color palettes per theme mode so terminal foreground, cursor, and ANSI colors visibly change with theme selection
+- Relevant testing performed:
+  - rebuilt the renderer successfully with `npm run build`
+  - verified TypeScript and stylesheet diagnostics remain clean after the theming refactor
+
 ## Current State Summary
 
 - Active branch:
