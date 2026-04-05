@@ -12,6 +12,7 @@ const THEME_ORDER = ['soft', 'standard', 'hacker'] as const;
 const HACKER_PROFILE_ORDER = ['stealth', 'breach', 'forensic'] as const;
 const DEFAULT_TERMINAL_FONT = '"JetBrains Mono", "Cascadia Code", monospace';
 const HACKER_TERMINAL_FONT = '"Share Tech Mono", "JetBrains Mono", "Cascadia Code", monospace';
+const OUTPUT_BODY_ANSI = '\x1b[31m';
 
 const THEME_PRESETS = {
   soft: {
@@ -115,7 +116,7 @@ const THEME_PRESETS = {
       cursorAccent: '#070b12',
       selectionBackground: 'rgba(117, 169, 255, 0.18)',
       black: '#0a0e16',
-      red: '#c93a4f',
+      red: '#ffd37d',
       green: '#76f7c7',
       yellow: '#ffd37d',
       blue: '#77b2ff',
@@ -123,7 +124,7 @@ const THEME_PRESETS = {
       cyan: '#79d4ff',
       white: '#f5fbff',
       brightBlack: '#344156',
-      brightRed: '#ff8ab0',
+      brightRed: '#c93a4f',
       brightGreen: '#8dffe0',
       brightYellow: '#ffe29f',
       brightBlue: '#2f7dff',
@@ -169,7 +170,7 @@ const THEME_PRESETS = {
     },
     terminal: {
       background: '#061208',
-      foreground: '#2da955',
+      foreground: '#ffffff',
       cursor: '#6bff93',
       cursorAccent: '#061208',
       selectionBackground: 'rgba(111, 255, 139, 0.24)',
@@ -200,19 +201,19 @@ const THEME_VISUAL_MAP = {
 const THEME_TEXT_ANSI = {
   soft: {
     prompt: '\x1b[94m',
-    output: '\x1b[31m',
+    output: '\x1b[91m',
     welcomeMsg: '\x1b[95m',
     welcomeAuthor: '\x1b[94m'
   },
   standard: {
     prompt: '\x1b[94m',
-    output: '\x1b[31m',
+    output: '\x1b[91m',
     welcomeMsg: '\x1b[95m',
     welcomeAuthor: '\x1b[94m'
   },
   hacker: {
     prompt: '\x1b[94m',
-    output: '\x1b[31m',
+    output: '\x1b[91m',
     welcomeMsg: '\x1b[95m',
     welcomeAuthor: '\x1b[94m'
   }
@@ -377,7 +378,7 @@ export default function App() {
   const welcomeReadyRef = useRef(false);
   const promptTimerRef = useRef<number | null>(null);
   const promptLabelRef = useRef('\x1b[94mbolBhai\x1b[0m>> ');
-  const outputPrefixRef = useRef('\x1b[31msunBhai>> ');
+  const outputPrefixRef = useRef('\x1b[91msunBhai>>\x1b[0m \x1b[31m');
   const statusRef = useRef<AppStatus>('booting');
   const [status, setStatus] = useState<AppStatus>('booting');
   const [shellPath, setShellPath] = useState('shell-core/myshell_v6.exe');
@@ -506,8 +507,7 @@ export default function App() {
   useEffect(() => {
     const textAnsi = THEME_TEXT_ANSI[themeMode];
     promptLabelRef.current = `${textAnsi.prompt}bolBhai\x1b[0m>> `;
-    outputPrefixRef.current =
-      themeMode === 'soft' ? `${textAnsi.output}sunBhai\x1b[0m>> ` : `${textAnsi.output}sunBhai>> `;
+    outputPrefixRef.current = `${textAnsi.output}sunBhai>>\x1b[0m ${OUTPUT_BODY_ANSI}`;
   }, [themeMode]);
 
   useEffect(() => {
