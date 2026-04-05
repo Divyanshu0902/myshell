@@ -506,7 +506,10 @@ export default function App() {
 
   useEffect(() => {
     const textAnsi = THEME_TEXT_ANSI[themeMode];
-    promptLabelRef.current = `${textAnsi.prompt}bolBhai\x1b[0m>> `;
+    promptLabelRef.current =
+      themeMode === 'soft'
+        ? `${textAnsi.prompt}bolBhai>>\x1b[0m `
+        : `${textAnsi.prompt}bolBhai\x1b[0m>> `;
     outputPrefixRef.current = `${textAnsi.output}sunBhai>>\x1b[0m ${OUTPUT_BODY_ANSI}`;
   }, [themeMode]);
 
