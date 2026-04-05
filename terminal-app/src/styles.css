@@ -23,6 +23,10 @@
   --chip-bg: rgba(20, 24, 36, 0.48);
   --chip-hover-border: rgba(133, 166, 255, 0.42);
   --chip-hover-bg: rgba(116, 167, 255, 0.12);
+  --title-grad-start: #8fd2ff;
+  --title-grad-mid: #d7ebff;
+  --title-grad-end: #b8a8ff;
+  --caption-color: rgba(210, 224, 255, 0.62);
   --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
 }
 
@@ -139,7 +143,7 @@ input {
   font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
   font-style: italic;
   letter-spacing: 0.14em;
-  color: #8dc5ff;
+  color: var(--caption-color);
 }
 
 .titlebar h1 {
@@ -148,7 +152,7 @@ input {
   font-style: italic;
   letter-spacing: 0.03em;
   text-transform: none;
-  background: linear-gradient(90deg, #8fd2ff 0%, #d7ebff 55%, #b8a8ff 100%);
+  background: linear-gradient(90deg, var(--title-grad-start) 0%, var(--title-grad-mid) 55%, var(--title-grad-end) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -228,7 +232,7 @@ input {
   font-size: 0.68rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--caption-color);
 }
 
 .eyebrow-brand {
@@ -261,7 +265,7 @@ input {
   font-size: 0.66rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(173, 255, 197, 0.72);
+  color: var(--caption-color);
 }
 
 .cwd-badge strong {
@@ -406,6 +410,77 @@ input {
 
 .terminal-host .xterm-screen canvas {
   filter: drop-shadow(0 0 10px rgba(116, 167, 255, 0.07));
+}
+
+.app-theme-hacker .glass-panel {
+  border-color: rgba(126, 255, 146, 0.52);
+  box-shadow:
+    0 0 0 1px rgba(181, 255, 126, 0.12) inset,
+    0 0 16px rgba(74, 255, 108, 0.2),
+    var(--shadow);
+}
+
+.app-theme-hacker .titlebar,
+.app-theme-hacker .output-shell,
+.app-theme-hacker .cwd-badge {
+  position: relative;
+}
+
+.app-theme-hacker .output-shell::before,
+.app-theme-hacker .output-shell::after,
+.app-theme-hacker .titlebar::before,
+.app-theme-hacker .titlebar::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  border-color: rgba(172, 255, 126, 0.78);
+  opacity: 0.72;
+}
+
+.app-theme-hacker .output-shell::before,
+.app-theme-hacker .titlebar::before {
+  top: 8px;
+  left: 8px;
+  border-top: 1px solid;
+  border-left: 1px solid;
+}
+
+.app-theme-hacker .output-shell::after,
+.app-theme-hacker .titlebar::after {
+  top: 8px;
+  right: 8px;
+  border-top: 1px solid;
+  border-right: 1px solid;
+}
+
+.app-theme-hacker .output-header {
+  border-bottom-color: rgba(121, 255, 110, 0.42);
+}
+
+.app-theme-hacker .window-button,
+.app-theme-hacker .settings-chip {
+  text-shadow: 0 0 10px rgba(165, 255, 122, 0.2);
+}
+
+.app-theme-hacker .window-button:hover,
+.app-theme-hacker .settings-chip:hover,
+.app-theme-hacker .settings-chip.selected {
+  box-shadow: 0 0 10px rgba(115, 255, 110, 0.26);
+}
+
+.app-theme-hacker .terminal-host .xterm-screen canvas {
+  filter: drop-shadow(0 0 8px rgba(108, 255, 128, 0.22));
+}
+
+.app-theme-hacker .settings-slider.compact {
+  background: rgba(172, 255, 126, 0.24);
+}
+
+.app-theme-hacker .settings-slider.compact::-webkit-slider-thumb {
+  border-color: rgba(172, 255, 126, 0.78);
+  background: #6dff8f;
 }
 
 .settings-options.compact {

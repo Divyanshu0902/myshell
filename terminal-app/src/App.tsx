@@ -4,14 +4,10 @@ import { FitAddon } from '@xterm/addon-fit';
 
 const BASE_FONT_SIZE = 15;
 const BOOT_STEPS = ['authenticating runtime', 'binding transport', 'warming output log', 'linking apnaShell'];
-const PROMPT_LABEL = '\x1b[38;2;119;178;255mbolBhai\x1b[0m>> ';
-const OUTPUT_LABEL = '\x1b[38;2;255;92;92msunBhai\x1b[0m>';
-const OUTPUT_PREFIX = `${OUTPUT_LABEL}> `;
-const OUTPUT_INDENT = ' '.repeat('sunBhai> '.length);
 const WELCOME_MESSAGE = 'Welcome to apnaShell. Thanks for using it';
 const WELCOME_AUTHOR = ' - Divyanshu';
 const OUTPUT_CONTENT_COLUMN = 'sunBhai> '.length + 1;
-const THEME_ORDER = ['soft', 'standard', 'surge'] as const;
+const THEME_ORDER = ['soft', 'standard', 'hacker'] as const;
 
 const THEME_PRESETS = {
   soft: {
@@ -39,7 +35,15 @@ const THEME_PRESETS = {
       chipBorder: 'rgba(150, 173, 235, 0.26)',
       chipBg: 'rgba(34, 40, 66, 0.56)',
       chipHoverBorder: 'rgba(159, 189, 255, 0.46)',
-      chipHoverBg: 'rgba(120, 158, 255, 0.14)'
+      chipHoverBg: 'rgba(120, 158, 255, 0.14)',
+      titleGradStart: '#9fbfff',
+      titleGradMid: '#f4fbff',
+      titleGradEnd: '#c6b9ff',
+      captionColor: 'rgba(208, 222, 250, 0.72)',
+      promptAnsi: '\x1b[38;2;154;188;255m',
+      outputAnsi: '\x1b[38;2;255;145;168m',
+      welcomeMsgAnsi: '\x1b[38;2;210;172;255m',
+      welcomeAuthorAnsi: '\x1b[38;2;145;227;255m'
     },
     terminal: {
       background: '#0c111a',
@@ -90,7 +94,15 @@ const THEME_PRESETS = {
       chipBorder: 'rgba(133, 166, 255, 0.2)',
       chipBg: 'rgba(20, 24, 36, 0.48)',
       chipHoverBorder: 'rgba(133, 166, 255, 0.42)',
-      chipHoverBg: 'rgba(116, 167, 255, 0.12)'
+      chipHoverBg: 'rgba(116, 167, 255, 0.12)',
+      titleGradStart: '#8fd2ff',
+      titleGradMid: '#d7ebff',
+      titleGradEnd: '#b8a8ff',
+      captionColor: 'rgba(210, 224, 255, 0.62)',
+      promptAnsi: '\x1b[38;2;119;178;255m',
+      outputAnsi: '\x1b[38;2;255;92;92m',
+      welcomeMsgAnsi: '\x1b[38;2;255;120;214m',
+      welcomeAuthorAnsi: '\x1b[38;2;116;244;201m'
     },
     terminal: {
       background: '#070b12',
@@ -116,54 +128,62 @@ const THEME_PRESETS = {
       brightWhite: '#ffffff'
     }
   },
-  surge: {
-    label: 'surge',
+  hacker: {
+    label: 'Hacker',
     css: {
-      bgRadialLeft: 'rgba(35, 111, 255, 0.36)',
-      bgRadialRight: 'rgba(16, 236, 255, 0.24)',
-      bgTop: '#020816',
-      bgBottom: '#01040b',
-      text: '#d9f2ff',
-      muted: 'rgba(170, 223, 255, 0.7)',
-      line: 'rgba(70, 174, 255, 0.34)',
-      glass: 'rgba(7, 20, 36, 0.7)',
-      blue: '#3fa4ff',
-      violet: '#6786ff',
-      green: '#47ffd0',
-      danger: '#ff678d',
-      orbLeft: '#256eff',
-      orbRight: '#00d7ff',
-      orbOpacity: '0.36',
-      outputBg: 'rgba(2, 13, 25, 0.86)',
-      cwdBorder: 'rgba(71, 255, 210, 0.44)',
-      cwdTop: 'rgba(71, 255, 210, 0.16)',
-      cwdBottom: 'rgba(5, 26, 34, 0.78)',
-      chipBorder: 'rgba(75, 177, 255, 0.38)',
-      chipBg: 'rgba(5, 30, 47, 0.62)',
-      chipHoverBorder: 'rgba(70, 224, 255, 0.74)',
-      chipHoverBg: 'rgba(16, 155, 255, 0.2)'
+      bgRadialLeft: 'rgba(43, 255, 144, 0.34)',
+      bgRadialRight: 'rgba(92, 255, 87, 0.24)',
+      bgTop: '#021107',
+      bgBottom: '#010704',
+      text: '#d9ffe6',
+      muted: 'rgba(154, 255, 179, 0.72)',
+      line: 'rgba(96, 255, 146, 0.36)',
+      glass: 'rgba(6, 30, 13, 0.74)',
+      blue: '#6fff9f',
+      violet: '#4dff84',
+      green: '#95ffba',
+      danger: '#ff4f71',
+      orbLeft: '#1eff74',
+      orbRight: '#4cff5a',
+      orbOpacity: '0.38',
+      outputBg: 'rgba(8, 24, 12, 0.88)',
+      cwdBorder: 'rgba(103, 255, 151, 0.52)',
+      cwdTop: 'rgba(103, 255, 151, 0.18)',
+      cwdBottom: 'rgba(8, 34, 15, 0.82)',
+      chipBorder: 'rgba(97, 255, 147, 0.44)',
+      chipBg: 'rgba(11, 42, 18, 0.68)',
+      chipHoverBorder: 'rgba(172, 255, 154, 0.86)',
+      chipHoverBg: 'rgba(97, 255, 147, 0.24)',
+      titleGradStart: '#7effab',
+      titleGradMid: '#d8ffe8',
+      titleGradEnd: '#9fff7c',
+      captionColor: 'rgba(176, 255, 195, 0.78)',
+      promptAnsi: '\x1b[38;2;126;255;168m',
+      outputAnsi: '\x1b[38;2;166;255;112m',
+      welcomeMsgAnsi: '\x1b[38;2;132;255;170m',
+      welcomeAuthorAnsi: '\x1b[38;2;180;255;130m'
     },
     terminal: {
-      background: '#040a14',
-      foreground: '#d7f2ff',
-      cursor: '#32d5ff',
-      cursorAccent: '#040a14',
-      selectionBackground: 'rgba(50, 213, 255, 0.22)',
-      black: '#071423',
-      red: '#ff5f7c',
-      green: '#54ffc0',
-      yellow: '#ffe169',
-      blue: '#3ea2ff',
-      magenta: '#a57dff',
-      cyan: '#39ecff',
-      white: '#e8f9ff',
-      brightBlack: '#2c4b66',
-      brightRed: '#ff87a0',
-      brightGreen: '#85ffd7',
-      brightYellow: '#ffee97',
-      brightBlue: '#79beff',
-      brightMagenta: '#c0a6ff',
-      brightCyan: '#8ff4ff',
+      background: '#061208',
+      foreground: '#b9ffd0',
+      cursor: '#6bff93',
+      cursorAccent: '#061208',
+      selectionBackground: 'rgba(111, 255, 139, 0.24)',
+      black: '#0f1d12',
+      red: '#ff5a79',
+      green: '#64ff8b',
+      yellow: '#9fff7f',
+      blue: '#7eff9f',
+      magenta: '#84ffb3',
+      cyan: '#b2ff8e',
+      white: '#ecffee',
+      brightBlack: '#2a5e34',
+      brightRed: '#ff8ca7',
+      brightGreen: '#8cffad',
+      brightYellow: '#c8ffad',
+      brightBlue: '#abffc0',
+      brightMagenta: '#9affb3',
+      brightCyan: '#ccffb9',
       brightWhite: '#ffffff'
     }
   }
@@ -171,7 +191,7 @@ const THEME_PRESETS = {
 const THEME_VISUAL_MAP = {
   soft: 'standard',
   standard: 'soft',
-  surge: 'surge'
+  hacker: 'hacker'
 } as const;
 const STORAGE_KEYS = {
   fontScale: 'myshell-terminal:font-scale',
@@ -205,6 +225,9 @@ function readStoredThemeMode(): ThemeMode {
   }
 
   const stored = window.localStorage.getItem(STORAGE_KEYS.themeMode);
+  if (stored === 'hackerTerminal') {
+    return 'hacker';
+  }
   return stored && stored in THEME_PRESETS ? (stored as ThemeMode) : 'soft';
 }
 
@@ -222,6 +245,8 @@ export default function App() {
   const outputBlockOpenRef = useRef(false);
   const promptVisibleRef = useRef(false);
   const promptTimerRef = useRef<number | null>(null);
+  const promptLabelRef = useRef('\x1b[38;2;119;178;255mbolBhai\x1b[0m>> ');
+  const outputPrefixRef = useRef('\x1b[38;2;255;92;92msunBhai\x1b[0m> ');
   const statusRef = useRef<AppStatus>('booting');
   const [status, setStatus] = useState<AppStatus>('booting');
   const [shellPath, setShellPath] = useState('shell-core/myshell_v6.exe');
@@ -239,6 +264,12 @@ export default function App() {
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEYS.themeMode, themeMode);
+  }, [themeMode]);
+
+  useEffect(() => {
+    const activeTheme = THEME_PRESETS[themeMode].css;
+    promptLabelRef.current = `${activeTheme.promptAnsi}bolBhai\x1b[0m>> `;
+    outputPrefixRef.current = `${activeTheme.outputAnsi}sunBhai\x1b[0m> `;
   }, [themeMode]);
 
   useEffect(() => {
@@ -306,7 +337,7 @@ export default function App() {
       }
 
       outputBlockOpenRef.current = true;
-      terminalRef.current.write(`\r\n${OUTPUT_PREFIX}`);
+      terminalRef.current.write(`\r\n${outputPrefixRef.current}`);
       terminalRef.current.scrollToBottom();
     };
 
@@ -318,7 +349,7 @@ export default function App() {
       promptVisibleRef.current = true;
       inputBufferRef.current = '';
       historyIndexRef.current = null;
-      terminalRef.current.write(`\r\n${PROMPT_LABEL}`);
+      terminalRef.current.write(`\r\n${promptLabelRef.current}`);
       terminalRef.current.scrollToBottom();
       terminalRef.current.focus();
     };
@@ -477,7 +508,7 @@ export default function App() {
       setShellPath(normalizedShellPath);
       setCurrentDirectory(normalizedCwd);
       terminalRef.current?.write(
-        `\r\n${welcomePadding}\x1b[38;2;255;120;214m${WELCOME_MESSAGE}\x1b[0m\x1b[38;2;116;244;201m${WELCOME_AUTHOR}\x1b[0m\r\n`
+        `\r\n${welcomePadding}${themeConfig.css.welcomeMsgAnsi}${WELCOME_MESSAGE}\x1b[0m${themeConfig.css.welcomeAuthorAnsi}${WELCOME_AUTHOR}\x1b[0m\r\n`
       );
       window.setTimeout(() => setBootIndex(BOOT_STEPS.length - 1), 60);
       window.setTimeout(() => setAppReady(true), 220);
@@ -560,6 +591,10 @@ export default function App() {
     '--chip-bg': themeConfig.css.chipBg,
     '--chip-hover-border': themeConfig.css.chipHoverBorder,
     '--chip-hover-bg': themeConfig.css.chipHoverBg,
+    '--title-grad-start': themeConfig.css.titleGradStart,
+    '--title-grad-mid': themeConfig.css.titleGradMid,
+    '--title-grad-end': themeConfig.css.titleGradEnd,
+    '--caption-color': themeConfig.css.captionColor,
     '--font-scale': fontScale.toFixed(2)
   } as CSSProperties;
 
