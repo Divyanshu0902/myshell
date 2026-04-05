@@ -168,6 +168,11 @@ const THEME_PRESETS = {
     }
   }
 } as const;
+const THEME_VISUAL_MAP = {
+  soft: 'standard',
+  standard: 'soft',
+  surge: 'surge'
+} as const;
 const STORAGE_KEYS = {
   fontScale: 'myshell-terminal:font-scale',
   themeMode: 'myshell-terminal:theme-mode'
@@ -196,11 +201,11 @@ function readStoredFontScale() {
 
 function readStoredThemeMode(): ThemeMode {
   if (typeof window === 'undefined') {
-    return 'standard';
+    return 'soft';
   }
 
   const stored = window.localStorage.getItem(STORAGE_KEYS.themeMode);
-  return stored && stored in THEME_PRESETS ? (stored as ThemeMode) : 'standard';
+  return stored && stored in THEME_PRESETS ? (stored as ThemeMode) : 'soft';
 }
 
 function formatOutputChunk(chunk: string) {
@@ -226,7 +231,7 @@ export default function App() {
   const [currentDirectory, setCurrentDirectory] = useState('workspace pending');
   const [fontScale, setFontScale] = useState(readStoredFontScale);
   const [themeMode, setThemeMode] = useState<ThemeMode>(readStoredThemeMode);
-  const themeConfig = THEME_PRESETS[themeMode];
+  const themeConfig = THEME_PRESETS[THEME_VISUAL_MAP[themeMode]];
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEYS.fontScale, fontScale.toFixed(2));
