@@ -435,7 +435,7 @@ export default function App() {
         <div className="title-meta">{shellVersion}</div>
         <div className="window-controls">
           <button className="window-button" onClick={() => void window.terminalApp.minimizeWindow()} aria-label="Minimize window" type="button">_</button>
-          <button className="window-button" onClick={() => void window.terminalApp.maximizeWindow()} aria-label="Maximize window" type="button">?</button>
+          <button className="window-button" onClick={() => void window.terminalApp.maximizeWindow()} aria-label="Maximize window" type="button">□</button>
           <button className="window-button danger" onClick={() => void window.terminalApp.closeWindow()} aria-label="Close window" type="button">×</button>
         </div>
       </header>
