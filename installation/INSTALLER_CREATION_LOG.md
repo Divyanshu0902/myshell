@@ -36,6 +36,13 @@ Use the entries below to track each packaging milestone.
 - Result: The app UI now has a tighter height chain and a refit trigger to keep the output panel aligned with the visible viewport.
 - Follow-up: Continue with installer creation once the UI fix is verified in a renderer build.
 
+### 2026-04-05 - Cursor Blink And Bottom Anchoring Fix
+
+- Change: Fixed prompt focus and bottom anchoring so the cursor keeps blinking and remains visible after repeated commands.
+- Reason: A stable terminal interaction loop is required before shipping installers to external users.
+- Result: Prompt rendering now restores focus, output/prompt writes auto-scroll to the bottom, and xterm is measured on an unpadded host.
+- Follow-up: Validate in a live command session, then proceed with installer build generation.
+
 ## Planned Future Entries
 
 - build script added

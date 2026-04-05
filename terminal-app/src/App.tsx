@@ -176,6 +176,7 @@ export default function App() {
 
       outputBlockOpenRef.current = true;
       terminalRef.current.write(`\r\n${OUTPUT_PREFIX}`);
+      terminalRef.current.scrollToBottom();
     };
 
     const renderPrompt = () => {
@@ -187,6 +188,8 @@ export default function App() {
       inputBufferRef.current = '';
       historyIndexRef.current = null;
       terminalRef.current.write(`\r\n${PROMPT_LABEL}`);
+      terminalRef.current.scrollToBottom();
+      terminalRef.current.focus();
     };
 
     const replaceCurrentLine = (value: string) => {
@@ -207,6 +210,7 @@ export default function App() {
       const command = rawCommand.trim();
       promptVisibleRef.current = false;
       terminalRef.current?.write('\r\n');
+      terminalRef.current?.scrollToBottom();
 
       if (!command) {
         inputBufferRef.current = '';
@@ -302,6 +306,7 @@ export default function App() {
 
       beginOutputBlock();
       terminalRef.current.write(formatOutputChunk(payload));
+      terminalRef.current.scrollToBottom();
       updateStatus('online');
       if (promptTimerRef.current !== null) {
         schedulePrompt();
@@ -388,9 +393,6 @@ export default function App() {
     return () => window.cancelAnimationFrame(frame);
   }, [appReady, bootVisible]);
 
-  async function submitCommand() {
-  }
-
   const shellVersion = inferShellVersion(shellPath);
   const themeConfig = THEME_OPTIONS.find((option) => option.id === themeMode) ?? THEME_OPTIONS[1];
   const appStyle = {
@@ -473,11 +475,9 @@ export default function App() {
               </div>
             </div>
           </div>
-          <div
-            ref={terminalHostRef}
-            className="terminal-host glass-output"
-            onClick={() => terminalRef.current?.focus()}
-          />
+          <div className="glass-output" onClick={() => terminalRef.current?.focus()}>
+            <div ref={terminalHostRef} className="terminal-host" />
+          </div>
         </section>
       </main>
     </div>

@@ -407,6 +407,26 @@ This document records the major stages of the project from the initial version u
   - rebuilt the renderer successfully with `npm run build`
   - verified the updated layout compiles cleanly after removing the bottom control area
 
+## Stage 18: Cursor Visibility And Bottom Anchoring Fix
+
+- Commit:
+  - Pending at the time of writing this update step; local workspace fix before installer packaging
+- Branch:
+  - `main`
+- Main files updated:
+  - `terminal-app/src/App.tsx`
+  - `terminal-app/src/styles.css`
+  - `FEATURES.md`
+  - `DEVELOPMENT_LOG.md`
+  - `installation/INSTALLER_CREATION_LOG.md`
+- Relevant changes:
+  - separated the padded terminal wrapper from the xterm host so fit calculations use the real drawable host area
+  - forced prompt and output writes to auto-scroll to the bottom to keep the active cursor visible
+  - focused the terminal whenever a prompt is rendered so cursor blinking remains stable across repeated command cycles
+- Relevant testing performed:
+  - pending live-session verification with multiple command rounds and long output runs
+  - expected outcome is that the cursor remains visible at the bottom and keeps blinking after repeated commands
+
 ## Current State Summary
 
 - Active branch:

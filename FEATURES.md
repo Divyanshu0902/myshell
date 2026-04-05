@@ -55,3 +55,5 @@
 - Removed the bottom command palette and lower dock controls
 - Moved theme and font controls into the working-directory header bar
 - Slimmed the top chrome to preserve more vertical space for output
+- Prompt now auto-focuses and keeps cursor blinking during terminal-only command sessions
+- Terminal output and prompt auto-scroll to bottom so the live cursor stays visible
