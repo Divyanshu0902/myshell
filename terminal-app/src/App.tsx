@@ -316,18 +316,26 @@ function readStoredHackerProfile(): HackerProfile {
 
 function readStoredHackerFocusMode() {
   if (typeof window === 'undefined') {
-    return false;
+    return true;
   }
 
-  return window.localStorage.getItem(STORAGE_KEYS.hackerFocusMode) === '1';
+  const stored = window.localStorage.getItem(STORAGE_KEYS.hackerFocusMode);
+  if (stored === null) {
+    return true;
+  }
+  return stored === '1';
 }
 
 function readStoredHackerModulesOpen() {
   if (typeof window === 'undefined') {
-    return false;
+    return true;
   }
 
-  return window.localStorage.getItem(STORAGE_KEYS.hackerModulesOpen) === '1';
+  const stored = window.localStorage.getItem(STORAGE_KEYS.hackerModulesOpen);
+  if (stored === null) {
+    return true;
+  }
+  return stored === '1';
 }
 
 function formatOutputChunk(chunk: string) {
@@ -361,8 +369,69 @@ export default function App() {
   const [commandCount, setCommandCount] = useState(0);
   const baseThemeMode = THEME_VISUAL_MAP[themeMode];
   const baseTheme = THEME_PRESETS[baseThemeMode];
+  const standardLegacyOverrides =
+    themeMode === 'standard'
+      ? {
+          css: {
+            bgRadialLeft: 'rgba(255, 194, 94, 0.16)',
+            bgRadialRight: 'rgba(255, 147, 41, 0.12)',
+            bgTop: '#090603',
+            bgBottom: '#020101',
+            text: '#ffd9a0',
+            muted: 'rgba(245, 199, 124, 0.66)',
+            line: 'rgba(255, 183, 89, 0.26)',
+            glass: 'rgba(17, 10, 5, 0.8)',
+            blue: '#ffb863',
+            violet: '#ff9140',
+            green: '#ffc867',
+            danger: '#ff7a53',
+            orbLeft: '#ffb863',
+            orbRight: '#ff7f3a',
+            orbOpacity: '0.2',
+            outputBg: 'rgba(8, 5, 2, 0.9)',
+            cwdBorder: 'rgba(255, 194, 102, 0.38)',
+            cwdTop: 'rgba(255, 194, 102, 0.12)',
+            cwdBottom: 'rgba(19, 12, 7, 0.85)',
+            chipBorder: 'rgba(255, 184, 92, 0.28)',
+            chipBg: 'rgba(31, 19, 11, 0.66)',
+            chipHoverBorder: 'rgba(255, 201, 126, 0.58)',
+            chipHoverBg: 'rgba(255, 177, 82, 0.2)',
+            titleGradStart: '#ffd7a3',
+            titleGradMid: '#ffe6bf',
+            titleGradEnd: '#ffb56a',
+            captionColor: 'rgba(244, 197, 122, 0.72)',
+            promptAnsi: '\x1b[38;2;255;205;126m',
+            outputAnsi: '\x1b[38;2;255;156;88m',
+            welcomeMsgAnsi: '\x1b[38;2;255;120;214m',
+            welcomeAuthorAnsi: '\x1b[38;2;119;178;255m'
+          },
+          terminal: {
+            background: '#050302',
+            foreground: '#ffcb82',
+            cursor: '#ffd596',
+            cursorAccent: '#050302',
+            selectionBackground: 'rgba(255, 187, 97, 0.24)',
+            black: '#140d08',
+            red: '#ff8c6b',
+            green: '#ffc874',
+            yellow: '#ffd18f',
+            blue: '#ffb574',
+            magenta: '#ff9a7d',
+            cyan: '#ffd5a3',
+            white: '#fff0d9',
+            brightBlack: '#4e3523',
+            brightRed: '#ffa78b',
+            brightGreen: '#ffd798',
+            brightYellow: '#ffe6b5',
+            brightBlue: '#ffc68e',
+            brightMagenta: '#ffb28f',
+            brightCyan: '#ffe2bf',
+            brightWhite: '#fff7ea'
+          }
+        }
+      : null;
   const hackerProfileConfig = baseThemeMode === 'hacker' ? HACKER_PROFILE_PRESETS[hackerProfile] : null;
-  const themeConfig: ThemePreset = hackerProfileConfig
+  let themeConfig: ThemePreset = hackerProfileConfig
     ? {
         label: baseTheme.label,
         css: {
@@ -375,6 +444,20 @@ export default function App() {
         }
       }
     : baseTheme;
+
+  if (standardLegacyOverrides) {
+    themeConfig = {
+      label: themeConfig.label,
+      css: {
+        ...themeConfig.css,
+        ...standardLegacyOverrides.css
+      },
+      terminal: {
+        ...themeConfig.terminal,
+        ...standardLegacyOverrides.terminal
+      }
+    };
+  }
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEYS.fontScale, fontScale.toFixed(2));
@@ -632,14 +715,16 @@ export default function App() {
     window.terminalApp.startShell().then((result) => {
       const normalizedShellPath = result.shellPath.replace(/\\/g, '/');
       const normalizedCwd = normalizeWindowsPath(result.cwd);
+      fitAddonRef.current?.fit();
       const totalWelcome = `${WELCOME_MESSAGE}${WELCOME_AUTHOR}`;
+      const cols = terminalRef.current?.cols ?? 80;
       const welcomePadding = ' '.repeat(
-        Math.max(0, Math.floor(((terminalRef.current?.cols ?? 80) - totalWelcome.length) / 2))
+        Math.max(0, Math.floor((cols - totalWelcome.length) / 2))
       );
       setShellPath(normalizedShellPath);
       setCurrentDirectory(normalizedCwd);
       terminalRef.current?.write(
-        `\r\n${welcomePadding}${themeConfig.css.welcomeMsgAnsi}${WELCOME_MESSAGE}\x1b[0m${themeConfig.css.welcomeAuthorAnsi}${WELCOME_AUTHOR}\x1b[0m\r\n`
+        `\r\n\x1b[1G${welcomePadding}${themeConfig.css.welcomeMsgAnsi}${WELCOME_MESSAGE}\x1b[0m${themeConfig.css.welcomeAuthorAnsi}${WELCOME_AUTHOR}\x1b[0m\r\n`
       );
       window.setTimeout(() => setBootIndex(BOOT_STEPS.length - 1), 60);
       window.setTimeout(() => setAppReady(true), 220);

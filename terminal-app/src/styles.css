@@ -589,6 +589,60 @@ input {
   filter: drop-shadow(0 0 8px rgba(108, 255, 128, 0.22));
 }
 
+.app-theme-standard .glass-panel {
+  border-color: rgba(255, 186, 96, 0.36);
+  background: linear-gradient(180deg, rgba(255, 190, 110, 0.06), rgba(255, 190, 110, 0.01)), rgba(15, 9, 4, 0.84);
+  backdrop-filter: blur(6px) saturate(108%);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
+}
+
+.app-theme-standard .titlebar h1,
+.app-theme-standard .boot-core h2 {
+  font-family: 'JetBrains Mono', 'Cascadia Code', monospace;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  background: none;
+  color: rgba(255, 215, 162, 0.94);
+}
+
+.app-theme-standard .eyebrow,
+.app-theme-standard .title-meta,
+.app-theme-standard .cwd-caption,
+.app-theme-standard .dock-label {
+  color: rgba(245, 198, 124, 0.78);
+}
+
+.app-theme-standard .window-button,
+.app-theme-standard .settings-chip {
+  border-radius: 0;
+}
+
+.app-theme-standard .window-button:hover,
+.app-theme-standard .settings-chip:hover,
+.app-theme-standard .settings-chip.selected {
+  box-shadow: 0 0 10px rgba(255, 190, 102, 0.2);
+}
+
+.app-theme-standard .glass-output::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 209, 141, 0.028) 0,
+    rgba(255, 209, 141, 0.028) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  opacity: 0.52;
+}
+
+.app-theme-standard .terminal-host .xterm-screen canvas {
+  filter: drop-shadow(0 0 10px rgba(255, 193, 112, 0.16));
+}
+
 .app-theme-hacker .glass-output::after {
   content: '';
   position: absolute;
