@@ -4,11 +4,14 @@ import { FitAddon } from '@xterm/addon-fit';
 
 const BASE_FONT_SIZE = 15;
 const BOOT_STEPS = ['authenticating runtime', 'binding transport', 'warming output log', 'linking apnaShell'];
-const WELCOME_MESSAGE = 'Welcome to apnaShell. Thanks for using it';
-const WELCOME_AUTHOR = ' - Divyanshu';
-const OUTPUT_CONTENT_COLUMN = 'sunBhai> '.length + 1;
+const WELCOME_PREFIX = 'Welcome to apnaShell. With love from - ';
+const WELCOME_NAME = 'Divyanshu';
+const WELCOME_SUFFIX = ' !';
+const OUTPUT_CONTENT_COLUMN = 'sunBhai>> '.length + 1;
 const THEME_ORDER = ['soft', 'standard', 'hacker'] as const;
 const HACKER_PROFILE_ORDER = ['stealth', 'breach', 'forensic'] as const;
+const DEFAULT_TERMINAL_FONT = '"JetBrains Mono", "Cascadia Code", monospace';
+const HACKER_TERMINAL_FONT = '"Share Tech Mono", "JetBrains Mono", "Cascadia Code", monospace';
 
 const THEME_PRESETS = {
   soft: {
@@ -43,8 +46,8 @@ const THEME_PRESETS = {
       captionColor: 'rgba(208, 222, 250, 0.72)',
       promptAnsi: '\x1b[38;2;154;188;255m',
       outputAnsi: '\x1b[38;2;255;145;168m',
-      welcomeMsgAnsi: '\x1b[38;2;210;172;255m',
-      welcomeAuthorAnsi: '\x1b[38;2;145;227;255m'
+      welcomeMsgAnsi: '\x1b[38;2;255;120;214m',
+      welcomeAuthorAnsi: '\x1b[38;2;119;178;255m'
     },
     terminal: {
       background: '#0c111a',
@@ -161,8 +164,8 @@ const THEME_PRESETS = {
       captionColor: 'rgba(176, 255, 195, 0.78)',
       promptAnsi: '\x1b[38;2;126;255;168m',
       outputAnsi: '\x1b[38;2;166;255;112m',
-      welcomeMsgAnsi: '\x1b[38;2;255;120;214m',
-      welcomeAuthorAnsi: '\x1b[38;2;119;178;255m'
+      welcomeMsgAnsi: '\x1b[38;2;52;186;84m',
+      welcomeAuthorAnsi: '\x1b[38;2;52;186;84m'
     },
     terminal: {
       background: '#061208',
@@ -354,7 +357,7 @@ export default function App() {
   const welcomeReadyRef = useRef(false);
   const promptTimerRef = useRef<number | null>(null);
   const promptLabelRef = useRef('\x1b[38;2;119;178;255mbolBhai\x1b[0m>> ');
-  const outputPrefixRef = useRef('\x1b[38;2;255;92;92msunBhai\x1b[0m> ');
+  const outputPrefixRef = useRef('\x1b[38;2;255;92;92msunBhai\x1b[0m>> ');
   const statusRef = useRef<AppStatus>('booting');
   const [status, setStatus] = useState<AppStatus>('booting');
   const [shellPath, setShellPath] = useState('shell-core/myshell_v6.exe');
@@ -489,13 +492,13 @@ export default function App() {
           ? '\x1b[38;2;167;167;167m'
           : activeTheme.promptAnsi;
     promptLabelRef.current = `${promptAnsi}bolBhai\x1b[0m>> `;
-    outputPrefixRef.current = `${activeTheme.outputAnsi}sunBhai\x1b[0m> `;
+    outputPrefixRef.current = `${activeTheme.outputAnsi}sunBhai\x1b[0m>> `;
   }, [themeConfig, themeMode]);
 
   useEffect(() => {
     const term = new Terminal({
       cursorBlink: true,
-      fontFamily: '"JetBrains Mono", "Cascadia Code", monospace',
+      fontFamily: DEFAULT_TERMINAL_FONT,
       fontSize: BASE_FONT_SIZE * fontScale,
       lineHeight: 1.35,
       letterSpacing: 0.4,
@@ -726,7 +729,7 @@ export default function App() {
     const writeWelcomeMessage = (themeCss: ThemeCssTokens) => {
       fitAddonRef.current?.fit();
       terminalRef.current?.write(
-        `\r\n\x1b[2K\x1b[1G${themeCss.welcomeMsgAnsi}${WELCOME_MESSAGE}\x1b[0m${themeCss.welcomeAuthorAnsi}${WELCOME_AUTHOR}\x1b[0m\r\n`
+        `\x1b[2K\x1b[1G${themeCss.welcomeMsgAnsi}${WELCOME_PREFIX}\x1b[0m${themeCss.welcomeAuthorAnsi}${WELCOME_NAME}\x1b[0m${themeCss.welcomeMsgAnsi}${WELCOME_SUFFIX}\x1b[0m\r\n`
       );
       welcomeReadyRef.current = true;
       schedulePrompt();
@@ -781,10 +784,12 @@ export default function App() {
     }
 
     terminalRef.current.options.theme = themeConfig.terminal;
+    terminalRef.current.options.fontFamily = themeMode === 'hacker' ? HACKER_TERMINAL_FONT : DEFAULT_TERMINAL_FONT;
     if (terminalRef.current.rows > 0) {
       terminalRef.current.refresh(0, terminalRef.current.rows - 1);
     }
-  }, [themeConfig]);
+    fitAddonRef.current?.fit();
+  }, [themeConfig, themeMode]);
 
   useEffect(() => {
     if (!fitAddonRef.current || !appReady) {
