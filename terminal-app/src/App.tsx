@@ -188,7 +188,7 @@ const THEME_PRESETS = {
       brightYellow: '#c8ffad',
       brightBlue: '#2da955',
       brightMagenta: '#2da955',
-      brightCyan: '#ccffb9',
+      brightCyan: '#58c66f',
       brightWhite: '#ffffff'
     }
   }
@@ -203,19 +203,22 @@ const THEME_TEXT_ANSI = {
     prompt: '\x1b[94m',
     output: '\x1b[91m',
     welcomeMsg: '\x1b[95m',
-    welcomeAuthor: '\x1b[94m'
+    welcomeAuthor: '\x1b[94m',
+    input: '\x1b[96m'
   },
   standard: {
     prompt: '\x1b[94m',
     output: '\x1b[91m',
     welcomeMsg: '\x1b[95m',
-    welcomeAuthor: '\x1b[94m'
+    welcomeAuthor: '\x1b[94m',
+    input: '\x1b[0m'
   },
   hacker: {
     prompt: '\x1b[94m',
     output: '\x1b[91m',
     welcomeMsg: '\x1b[95m',
-    welcomeAuthor: '\x1b[94m'
+    welcomeAuthor: '\x1b[94m',
+    input: '\x1b[96m'
   }
 } as const;
 const STORAGE_KEYS = {
@@ -508,9 +511,19 @@ export default function App() {
     const textAnsi = THEME_TEXT_ANSI[themeMode];
     promptLabelRef.current =
       themeMode === 'soft'
-        ? `${textAnsi.prompt}bolBhai>>\x1b[0m `
-        : `${textAnsi.prompt}bolBhai\x1b[0m>> `;
+        ? `${textAnsi.prompt}bolBhai>>\x1b[0m ${textAnsi.input}`
+        : `${textAnsi.prompt}bolBhai\x1b[0m>> ${textAnsi.input}`;
     outputPrefixRef.current = `${textAnsi.output}sunBhai>>\x1b[0m ${OUTPUT_BODY_ANSI}`;
+  }, [themeMode]);
+
+  useEffect(() => {
+    if (!terminalRef.current || !promptVisibleRef.current) {
+      return;
+    }
+
+    const currentInput = inputBufferRef.current;
+    terminalRef.current.write(`\r\x1b[2K${promptLabelRef.current}${currentInput}`);
+    terminalRef.current.scrollToBottom();
   }, [themeMode]);
 
   useEffect(() => {
