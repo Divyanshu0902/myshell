@@ -9,18 +9,27 @@ const rendererUrl = process.env.ELECTRON_RENDERER_URL;
 const SHELL_CWD_PREFIX = '__MYSHELL_CWD__=';
 const SHELL_PROMPT_ANSI = '\x1b[38;2;119;178;255mbolBhai\x1b[0m>> ';
 const SHELL_PROMPT_PLAIN = 'bolBhai>> ';
+const PACKAGED_SHELL_PATH = path.join(process.resourcesPath, 'shell-core', 'myshell_v6.exe');
 
 let mainWindow = null;
 let shellProcess = null;
 let shellStdoutBuffer = '';
 
 function resolveShellPath() {
+  if (app.isPackaged) {
+    return PACKAGED_SHELL_PATH;
+  }
+
   const candidates = [
     path.join(repoRoot, 'shell-core', 'myshell_v6.exe'),
     path.join(repoRoot, 'shell-core', 'myshell.exe')
   ];
 
   return candidates.find((candidate) => fs.existsSync(candidate)) || candidates[0];
+}
+
+function getShellWorkingDirectory() {
+  return app.isPackaged ? app.getPath('home') : repoRoot;
 }
 
 function broadcast(channel, payload) {
@@ -138,14 +147,15 @@ function stopShell() {
 
 function startShell() {
   if (shellProcess) {
-    return { ok: true, shellPath: resolveShellPath(), cwd: repoRoot, reused: true };
+    return { ok: true, shellPath: resolveShellPath(), cwd: getShellWorkingDirectory(), reused: true };
   }
 
   const shellPath = resolveShellPath();
+  const shellCwd = getShellWorkingDirectory();
   shellStdoutBuffer = '';
 
   shellProcess = spawn(shellPath, [], {
-    cwd: repoRoot,
+    cwd: shellCwd,
     stdio: ['pipe', 'pipe', 'pipe'],
     windowsHide: true
   });
@@ -168,7 +178,7 @@ function startShell() {
     shellProcess = null;
   });
 
-  return { ok: true, shellPath, cwd: repoRoot, reused: false };
+  return { ok: true, shellPath, cwd: shellCwd, reused: false };
 }
 
 ipcMain.handle('shell:start', () => startShell());

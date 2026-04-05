@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
+﻿import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Terminal } from 'xterm';
 import { FitAddon } from '@xterm/addon-fit';
 
@@ -56,11 +56,6 @@ function readStoredThemeMode(): ThemeMode {
   return THEME_OPTIONS.some((option) => option.id === stored) ? (stored as ThemeMode) : 'standard';
 }
 
-function centerText(text: string, columns: number) {
-  const padding = Math.max(0, Math.floor((columns - text.length) / 2));
-  return `${' '.repeat(padding)}${text}`;
-}
-
 function formatOutputChunk(chunk: string) {
   return normalizeChunk(chunk).replace(/\r\n/g, `\r\n\x1b[${OUTPUT_CONTENT_COLUMN}G`);
 }
@@ -84,7 +79,6 @@ export default function App() {
   const [currentDirectory, setCurrentDirectory] = useState('workspace pending');
   const [fontScale, setFontScale] = useState(readStoredFontScale);
   const [themeMode, setThemeMode] = useState<ThemeMode>(readStoredThemeMode);
-  const [commandValue, setCommandValue] = useState('');
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEYS.fontScale, fontScale.toFixed(2));
@@ -130,9 +124,21 @@ export default function App() {
     fitAddonRef.current = fitAddon;
     term.loadAddon(fitAddon);
     term.open(terminalHostRef.current as HTMLDivElement);
-    fitAddon.fit();
+    const scheduleFit = () => {
+      window.requestAnimationFrame(() => fitAddon.fit());
+    };
+
+    scheduleFit();
     term.focus();
     terminalRef.current = term;
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof window.ResizeObserver !== 'undefined' && terminalHostRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        scheduleFit();
+      });
+      resizeObserver.observe(terminalHostRef.current);
+    }
 
     let bootStepTimer: number | null = window.setInterval(() => {
       setBootIndex((current) => {
@@ -194,7 +200,6 @@ export default function App() {
       }
 
       inputBufferRef.current = value;
-      setCommandValue(value);
       terminalRef.current.write(value);
     };
 
@@ -205,7 +210,6 @@ export default function App() {
 
       if (!command) {
         inputBufferRef.current = '';
-        setCommandValue('');
         renderPrompt();
         return;
       }
@@ -213,7 +217,6 @@ export default function App() {
       commandHistoryRef.current.push(command);
       historyIndexRef.current = null;
       inputBufferRef.current = '';
-      setCommandValue('');
       outputBlockOpenRef.current = false;
 
       const response = await window.terminalApp.writeToShell(`${command}\n`);
@@ -223,7 +226,7 @@ export default function App() {
       }
     };
 
-    const onResize = () => fitAddon.fit();
+    const onResize = () => scheduleFit();
     window.addEventListener('resize', onResize);
 
     const removeDataInput = term.onData((data) => {
@@ -245,7 +248,6 @@ export default function App() {
           return;
         }
         inputBufferRef.current = inputBufferRef.current.slice(0, -1);
-        setCommandValue(inputBufferRef.current);
         terminalRef.current?.write('\b \b');
         return;
       }
@@ -289,7 +291,6 @@ export default function App() {
 
       if (data >= ' ' && data !== '\u007f') {
         inputBufferRef.current += data;
-        setCommandValue(inputBufferRef.current);
         terminalRef.current?.write(data);
       }
     });
@@ -354,6 +355,7 @@ export default function App() {
       removeExit();
       removeError();
       window.removeEventListener('resize', onResize);
+      resizeObserver?.disconnect();
       if (promptTimerRef.current !== null) {
         window.clearTimeout(promptTimerRef.current);
       }
@@ -374,73 +376,19 @@ export default function App() {
     fitAddonRef.current.fit();
   }, [fontScale]);
 
+  useEffect(() => {
+    if (!fitAddonRef.current || !appReady) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      fitAddonRef.current?.fit();
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [appReady, bootVisible]);
+
   async function submitCommand() {
-    const command = commandValue.trim();
-    if (!command) {
-      return;
-    }
-
-    if (promptVisibleRef.current && inputBufferRef.current.length > 0) {
-      terminalRef.current?.write('\b \b'.repeat(inputBufferRef.current.length));
-    }
-
-    promptVisibleRef.current = false;
-    inputBufferRef.current = '';
-    outputBlockOpenRef.current = false;
-    commandHistoryRef.current.push(command);
-    historyIndexRef.current = null;
-    setCommandValue('');
-    terminalRef.current?.focus();
-
-    const response = await window.terminalApp.writeToShell(`${command}\n`);
-    if (!response.ok) {
-      terminalRef.current?.write('[shell bridge offline]\r\n');
-      setStatus('offline');
-    }
-  }
-
-  function handleCommandKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      void submitCommand();
-      return;
-    }
-
-    if (event.key === 'ArrowUp') {
-      event.preventDefault();
-      if (commandHistoryRef.current.length === 0) {
-        return;
-      }
-
-      if (historyIndexRef.current === null) {
-        historyIndexRef.current = commandHistoryRef.current.length - 1;
-      } else if (historyIndexRef.current > 0) {
-        historyIndexRef.current -= 1;
-      }
-
-      const historyValue = commandHistoryRef.current[historyIndexRef.current];
-      inputBufferRef.current = historyValue;
-      setCommandValue(historyValue);
-      return;
-    }
-
-    if (event.key === 'ArrowDown') {
-      event.preventDefault();
-      if (commandHistoryRef.current.length === 0 || historyIndexRef.current === null) {
-        return;
-      }
-
-      if (historyIndexRef.current < commandHistoryRef.current.length - 1) {
-        historyIndexRef.current += 1;
-        const historyValue = commandHistoryRef.current[historyIndexRef.current];
-        inputBufferRef.current = historyValue;
-        setCommandValue(historyValue);
-      } else {
-        historyIndexRef.current = null;
-        inputBufferRef.current = '';
-        setCommandValue('');
-      }
-    }
   }
 
   const shellVersion = inferShellVersion(shellPath);
@@ -497,7 +445,33 @@ export default function App() {
               <span className="cwd-caption">Working Directory :</span>
               <strong>{currentDirectory}</strong>
             </div>
-            <span className="output-meta">{currentDirectory}</span>
+            <div className="settings-strip">
+              <div className="settings-options compact">
+                {THEME_OPTIONS.map((option) => (
+                  <button
+                    key={option.id}
+                    className={`settings-chip compact ${themeMode === option.id ? 'selected' : ''}`}
+                    onClick={() => setThemeMode(option.id)}
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <div className="font-dock compact">
+                <label className="dock-label" htmlFor="font-scale-slider">font {Math.round(fontScale * 100)}%</label>
+                <input
+                  id="font-scale-slider"
+                  className="settings-slider compact"
+                  type="range"
+                  min="85"
+                  max="135"
+                  step="5"
+                  value={Math.round(fontScale * 100)}
+                  onChange={(event) => setFontScale(Number(event.target.value) / 100)}
+                />
+              </div>
+            </div>
           </div>
           <div
             ref={terminalHostRef}
@@ -505,69 +479,7 @@ export default function App() {
             onClick={() => terminalRef.current?.focus()}
           />
         </section>
-
-        <section className="command-palette-wrap">
-          <div className={`command-palette glass-panel status-${status}`}>
-            <div className="palette-head">
-              <span className="palette-label">command</span>
-              <span className="palette-status">{status}</span>
-            </div>
-            <div className="palette-input-row">
-              <span className="palette-prompt">›</span>
-              <input
-                className="palette-input"
-                value={commandValue}
-                onChange={(event) => {
-                  inputBufferRef.current = event.target.value;
-                  setCommandValue(event.target.value);
-                }}
-                onKeyDown={handleCommandKeyDown}
-                placeholder="Type a command and press Enter"
-                autoFocus
-              />
-            </div>
-            <div className="palette-foot">
-              <span>{currentDirectory}</span>
-              <span>{commandHistoryRef.current.length} history</span>
-            </div>
-          </div>
-        </section>
       </main>
-
-      <footer className="dock glass-panel">
-        <div className="dock-item dock-item-wide">
-          <span className="dock-label">cwd</span>
-          <strong>{currentDirectory}</strong>
-        </div>
-        <div className="dock-item">
-          <span className="dock-label">theme</span>
-          <div className="settings-options compact">
-            {THEME_OPTIONS.map((option) => (
-              <button
-                key={option.id}
-                className={`settings-chip compact ${themeMode === option.id ? 'selected' : ''}`}
-                onClick={() => setThemeMode(option.id)}
-                type="button"
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="dock-item font-dock">
-          <label className="dock-label" htmlFor="font-scale-slider">font {Math.round(fontScale * 100)}%</label>
-          <input
-            id="font-scale-slider"
-            className="settings-slider compact"
-            type="range"
-            min="85"
-            max="135"
-            step="5"
-            value={Math.round(fontScale * 100)}
-            onChange={(event) => setFontScale(Number(event.target.value) / 100)}
-          />
-        </div>
-      </footer>
     </div>
   );
 }

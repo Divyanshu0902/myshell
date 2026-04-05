@@ -23,3 +23,5 @@ declare global {
     terminalApp: TerminalAppApi;
   }
 }
+
+export {};
