@@ -373,60 +373,60 @@ export default function App() {
     themeMode === 'standard'
       ? {
           css: {
-            bgRadialLeft: 'rgba(255, 194, 94, 0.16)',
-            bgRadialRight: 'rgba(255, 147, 41, 0.12)',
-            bgTop: '#090603',
-            bgBottom: '#020101',
-            text: '#ffd9a0',
-            muted: 'rgba(245, 199, 124, 0.66)',
-            line: 'rgba(255, 183, 89, 0.26)',
-            glass: 'rgba(17, 10, 5, 0.8)',
-            blue: '#ffb863',
-            violet: '#ff9140',
-            green: '#ffc867',
-            danger: '#ff7a53',
-            orbLeft: '#ffb863',
-            orbRight: '#ff7f3a',
-            orbOpacity: '0.2',
-            outputBg: 'rgba(8, 5, 2, 0.9)',
-            cwdBorder: 'rgba(255, 194, 102, 0.38)',
-            cwdTop: 'rgba(255, 194, 102, 0.12)',
-            cwdBottom: 'rgba(19, 12, 7, 0.85)',
-            chipBorder: 'rgba(255, 184, 92, 0.28)',
-            chipBg: 'rgba(31, 19, 11, 0.66)',
-            chipHoverBorder: 'rgba(255, 201, 126, 0.58)',
-            chipHoverBg: 'rgba(255, 177, 82, 0.2)',
-            titleGradStart: '#ffd7a3',
-            titleGradMid: '#ffe6bf',
-            titleGradEnd: '#ffb56a',
-            captionColor: 'rgba(244, 197, 122, 0.72)',
-            promptAnsi: '\x1b[38;2;255;205;126m',
-            outputAnsi: '\x1b[38;2;255;156;88m',
+            bgRadialLeft: 'rgba(180, 190, 205, 0.1)',
+            bgRadialRight: 'rgba(120, 140, 165, 0.1)',
+            bgTop: '#0b0b0b',
+            bgBottom: '#010101',
+            text: '#e3e3e3',
+            muted: 'rgba(180, 180, 180, 0.64)',
+            line: 'rgba(130, 130, 130, 0.3)',
+            glass: 'rgba(10, 10, 10, 0.82)',
+            blue: '#7ea6d9',
+            violet: '#8a8a8a',
+            green: '#c8c8c8',
+            danger: '#cf6f6f',
+            orbLeft: '#5f6a76',
+            orbRight: '#363c46',
+            orbOpacity: '0.14',
+            outputBg: 'rgba(2, 2, 2, 0.92)',
+            cwdBorder: 'rgba(152, 152, 152, 0.34)',
+            cwdTop: 'rgba(170, 170, 170, 0.08)',
+            cwdBottom: 'rgba(10, 10, 10, 0.9)',
+            chipBorder: 'rgba(150, 150, 150, 0.28)',
+            chipBg: 'rgba(19, 19, 19, 0.7)',
+            chipHoverBorder: 'rgba(188, 188, 188, 0.52)',
+            chipHoverBg: 'rgba(124, 124, 124, 0.16)',
+            titleGradStart: '#cfcfcf',
+            titleGradMid: '#f0f0f0',
+            titleGradEnd: '#b4b4b4',
+            captionColor: 'rgba(177, 177, 177, 0.72)',
+            promptAnsi: '\x1b[38;2;167;167;167m',
+            outputAnsi: '\x1b[38;2;212;212;212m',
             welcomeMsgAnsi: '\x1b[38;2;255;120;214m',
             welcomeAuthorAnsi: '\x1b[38;2;119;178;255m'
           },
           terminal: {
-            background: '#050302',
-            foreground: '#ffcb82',
-            cursor: '#ffd596',
-            cursorAccent: '#050302',
-            selectionBackground: 'rgba(255, 187, 97, 0.24)',
-            black: '#140d08',
-            red: '#ff8c6b',
-            green: '#ffc874',
-            yellow: '#ffd18f',
-            blue: '#ffb574',
-            magenta: '#ff9a7d',
-            cyan: '#ffd5a3',
-            white: '#fff0d9',
-            brightBlack: '#4e3523',
-            brightRed: '#ffa78b',
-            brightGreen: '#ffd798',
-            brightYellow: '#ffe6b5',
-            brightBlue: '#ffc68e',
-            brightMagenta: '#ffb28f',
-            brightCyan: '#ffe2bf',
-            brightWhite: '#fff7ea'
+            background: '#000000',
+            foreground: '#d4d4d4',
+            cursor: '#cfcfcf',
+            cursorAccent: '#000000',
+            selectionBackground: 'rgba(128, 128, 128, 0.3)',
+            black: '#000000',
+            red: '#c85b5b',
+            green: '#d6d6d6',
+            yellow: '#bdbdbd',
+            blue: '#8fb8ee',
+            magenta: '#b0b0b0',
+            cyan: '#b8c8dc',
+            white: '#e6e6e6',
+            brightBlack: '#505050',
+            brightRed: '#df8282',
+            brightGreen: '#f1f1f1',
+            brightYellow: '#d8d8d8',
+            brightBlue: '#b3d0f5',
+            brightMagenta: '#c9c9c9',
+            brightCyan: '#d1deee',
+            brightWhite: '#ffffff'
           }
         }
       : null;
@@ -481,9 +481,15 @@ export default function App() {
 
   useEffect(() => {
     const activeTheme = themeConfig.css;
-    promptLabelRef.current = `${activeTheme.promptAnsi}bolBhai\x1b[0m>> `;
+    const promptAnsi =
+      themeMode === 'soft'
+        ? '\x1b[38;2;119;178;255m'
+        : themeMode === 'standard'
+          ? '\x1b[38;2;167;167;167m'
+          : activeTheme.promptAnsi;
+    promptLabelRef.current = `${promptAnsi}bolBhai\x1b[0m>> `;
     outputPrefixRef.current = `${activeTheme.outputAnsi}sunBhai\x1b[0m> `;
-  }, [themeConfig]);
+  }, [themeConfig, themeMode]);
 
   useEffect(() => {
     const term = new Terminal({
@@ -712,20 +718,26 @@ export default function App() {
       terminalRef.current?.write(`\r\n[shell error: ${payload.message}]\r\n`);
     });
 
-    window.terminalApp.startShell().then((result) => {
-      const normalizedShellPath = result.shellPath.replace(/\\/g, '/');
-      const normalizedCwd = normalizeWindowsPath(result.cwd);
+    const writeCenteredWelcome = (themeCss: ThemeCssTokens) => {
       fitAddonRef.current?.fit();
       const totalWelcome = `${WELCOME_MESSAGE}${WELCOME_AUTHOR}`;
       const cols = terminalRef.current?.cols ?? 80;
-      const welcomePadding = ' '.repeat(
-        Math.max(0, Math.floor((cols - totalWelcome.length) / 2))
+      const welcomePadding = ' '.repeat(Math.max(0, Math.floor((cols - totalWelcome.length) / 2)));
+      terminalRef.current?.write(
+        `\r\n\x1b[2K\x1b[1G${welcomePadding}${themeCss.welcomeMsgAnsi}${WELCOME_MESSAGE}\x1b[0m${themeCss.welcomeAuthorAnsi}${WELCOME_AUTHOR}\x1b[0m\r\n`
       );
+    };
+
+    window.terminalApp.startShell().then((result) => {
+      const normalizedShellPath = result.shellPath.replace(/\\/g, '/');
+      const normalizedCwd = normalizeWindowsPath(result.cwd);
       setShellPath(normalizedShellPath);
       setCurrentDirectory(normalizedCwd);
-      terminalRef.current?.write(
-        `\r\n\x1b[1G${welcomePadding}${themeConfig.css.welcomeMsgAnsi}${WELCOME_MESSAGE}\x1b[0m${themeConfig.css.welcomeAuthorAnsi}${WELCOME_AUTHOR}\x1b[0m\r\n`
-      );
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          writeCenteredWelcome(themeConfig.css);
+        });
+      });
       window.setTimeout(() => setBootIndex(BOOT_STEPS.length - 1), 60);
       window.setTimeout(() => setAppReady(true), 220);
       window.setTimeout(() => setBootVisible(false), 760);
