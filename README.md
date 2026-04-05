@@ -76,7 +76,6 @@ The repository is organized into:
 - `VERSIONING_METHOD.md` - project versioning approach
 - `WORKFLOW.md` - fixed implementation workflow
 
-
 ## Terminal App
 
 The desktop app lives in `terminal-app/` and launches through a dedicated Electron bootstrap that clears inherited `ELECTRON_RUN_AS_NODE` state before startup.
@@ -89,6 +88,16 @@ npm install
 npm run build
 npm run start
 ```
+
+To build the Windows installer from the terminal app folder:
+
+```powershell
+cd terminal-app
+npm run dist:win
+```
+
+The installer output is written to `terminal-app/release/` and includes the packaged shell executable.
+
 ## Requirements
 
 - Windows

@@ -210,7 +210,6 @@ This document records the major stages of the project from the initial version u
   - verified the versioned executable still runs from its new location
   - confirmed documentation and project structure were updated to match the move
 
-
 ## Stage 11: Terminal App Startup Fix And Launch Verification
 
 - Commit:
@@ -313,7 +312,8 @@ This document records the major stages of the project from the initial version u
   - verified the shell emits cwd control lines during startup and after directory changes
   - rebuilt the renderer successfully with `npm run build`
   - verified the Electron app stayed running and still launched a live `myshell_v6.exe` child process
-## Current State Summary
+
+## Current State Summary (Release Prep)
 
 - Main branch latest documented commit:
   - `0cf918c`
@@ -335,10 +335,6 @@ This document records the major stages of the project from the initial version u
 - Linux-style wildcard or glob expansion inside built-ins
 - Linux-style `${VAR}` expansion
 - Native built-in input streaming from redirected stdin
-
-
-
-
 
 ## Stage 15: Production UI Branding And Terminal Output Formatting
 
@@ -369,6 +365,47 @@ This document records the major stages of the project from the initial version u
   - rebuilt `shell-core/myshell_v6.exe`
   - rebuilt the renderer successfully with `npm run build`
   - verified the Electron app still launches and the shell bridge remains active
+
+## Stage 16: Terminal Viewport Height Fix
+
+- Commit:
+  - Pending at the time of writing this update step; local workspace fix before installer packaging
+- Branch:
+  - `main`
+- Main files updated:
+  - `terminal-app/src/App.tsx`
+  - `terminal-app/src/styles.css`
+  - `FEATURES.md`
+  - `DEVELOPMENT_LOG.md`
+  - `installation/INSTALLER_CREATION_LOG.md`
+- Relevant changes:
+  - tightened the root and terminal layout height chain so the xterm surface stays within the visible app window
+  - added a resize observer and post-layout refit so the terminal recomputes its visible rows after UI changes
+  - documented the viewport fix before continuing with installer packaging work
+- Relevant testing performed:
+  - pending renderer build verification after the viewport height fix
+  - expected outcome is that long output remains scrollable and the lowest lines stay visible inside the app window
+
+## Stage 17: Terminal-Only Input And Header Controls
+
+- Commit:
+  - Pending at the time of writing this update step; local workspace UI refinement before installer packaging
+- Branch:
+  - `main`
+- Main files updated:
+  - `terminal-app/src/App.tsx`
+  - `terminal-app/src/styles.css`
+  - `terminal-app/README.md`
+  - `FEATURES.md`
+  - `DEVELOPMENT_LOG.md`
+- Relevant changes:
+  - removed the bottom command palette so command entry now happens only in the terminal surface
+  - removed the lower dock and moved theme/font controls into the working-directory header bar
+  - trimmed the top chrome padding so the output terminal gets more visible height without shrinking the controls themselves
+  - kept cwd visible in one place only, on the left side of the header bar
+- Relevant testing performed:
+  - rebuilt the renderer successfully with `npm run build`
+  - verified the updated layout compiles cleanly after removing the bottom control area
 
 ## Current State Summary
 

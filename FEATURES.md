@@ -49,7 +49,9 @@
 - `sunBhai>` output labeling and aligned multiline output formatting
 - Centered welcome banner rendered inside the terminal surface
 - Boxed working-directory indicator in the terminal section header
-
-
-
-
+- Constrained terminal viewport height so long output stays visible inside the app window
+- Automatic terminal refit on resize and layout changes
+- Terminal-only command input through the hosted xterm surface
+- Removed the bottom command palette and lower dock controls
+- Moved theme and font controls into the working-directory header bar
+- Slimmed the top chrome to preserve more vertical space for output
